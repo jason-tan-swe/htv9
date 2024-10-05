@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import React, { useEffect, useRef, useState } from "react";
 import {
   motion,
@@ -9,24 +9,15 @@ import {
   useTransform,
   useVelocity,
 } from "framer-motion";
-
-import { cn } from "@/lib/utils";
-
+import { cn } from "../../lib/utils";
+// Helper function to wrap values
 export const wrap = (min, max, v) => {
   const rangeSize = max - min;
   return ((((v - min) % rangeSize) + rangeSize) % rangeSize) + min;
 };
 
-export function VelocityScroll({
-  text,
-  default_velocity = 5,
-  className
-}) {
-  function ParallaxText({
-    children,
-    baseVelocity = 100,
-    className
-  }) {
+export function VelocityScroll({ text, default_velocity = 5, className }) {
+  function ParallaxText({ children, baseVelocity = 100, className }) {
     const baseX = useMotionValue(0);
     const { scrollY } = useScroll();
     const scrollVelocity = useVelocity(scrollY);
@@ -48,7 +39,7 @@ export function VelocityScroll({
         if (containerRef.current && textRef.current) {
           const containerWidth = containerRef.current.offsetWidth;
           const textWidth = textRef.current.offsetWidth;
-          const newRepetitions = Math.ceil(containerWidth / textWidth) + 2;
+          const newRepetitions = Math.ceil(containerWidth / textWidth); // Adjust here
           setRepetitions(newRepetitions);
         }
       };
@@ -61,7 +52,7 @@ export function VelocityScroll({
 
     const x = useTransform(baseX, (v) => `${wrap(-100 / repetitions, 0, v)}%`);
 
-    const directionFactor = React.useRef(1);
+    const directionFactor = useRef(1);
     useAnimationFrame((t, delta) => {
       let moveBy = directionFactor.current * baseVelocity * (delta / 1000);
 
@@ -77,26 +68,38 @@ export function VelocityScroll({
     });
 
     return (
-      (<div className="w-full overflow-hidden whitespace-nowrap" ref={containerRef}>
-        <motion.div className={cn("inline-block", className)} style={{ x }}>
+      <div
+        className="w-screen overflow-hidden whitespace-nowrap px-5" // Adjust width and padding
+        ref={containerRef}
+      >
+        <motion.div
+          className={cn("inline-block", className)}
+          style={{ x, minWidth: "100%" }} // Ensuring min width of text container
+        >
           {Array.from({ length: repetitions }).map((_, i) => (
             <span key={i} ref={i === 0 ? textRef : null}>
               {children}{" "}
             </span>
           ))}
         </motion.div>
-      </div>)
+      </div>
     );
   }
 
   return (
-    (<section className="relative w-full">
-      <ParallaxText baseVelocity={default_velocity} className={className}>
+    <>
+      <ParallaxText
+        baseVelocity={default_velocity}
+        className={cn(className, "text-outlined")}
+      >
         {text}
       </ParallaxText>
-      <ParallaxText baseVelocity={-default_velocity} className={className}>
+      <ParallaxText
+        baseVelocity={-default_velocity}
+        className={cn(className, "text-outlined")}
+      >
         {text}
       </ParallaxText>
-    </section>)
+    </>
   );
 }
