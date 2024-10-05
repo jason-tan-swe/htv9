@@ -1,15 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react"; // Import useState and useEffect
+import { useState, useEffect } from "react";
 import { socket } from "../../socket";
 import AnimatedGrid from "../../components/AnimatedGrid";
 import BeamConnection from "../../components/BeamConnection";
+import PactVersus from "../../components/PactVersus";
+import { Crosshair2Icon, IconVersus } from "@radix-ui/react-icons"; // Example of importing Radix icon
 
 export default function Home() {
     // Define two color palettes for cards and beams
     const palette1 = {
       firstColor: "#ff0000", // Red
-      secondColor: "#DC143C", // Orange
+      secondColor: "#DC143C", // Crimson
     };
   
     const palette2 = {
@@ -52,8 +54,14 @@ export default function Home() {
     };
 
   return (
-    <div className="relative w-full h-screen"> {/* Force full width and height */}
+    <div className="relative w-full h-screen flex flex-col justify-center items-center"> {/* Flexbox to center vertically and horizontally */}
       <AnimatedGrid>
+        <PactVersus 
+          pact1="Go to the gym everyday" 
+          pact2="Drink more water" 
+          Icon={Crosshair2Icon}  // Pass the Radix Icon here
+        />
+        <div className="mt-8"></div>
         <BeamConnection
           card1Colors={card1Colors}
           card2Colors={card2Colors}
@@ -62,15 +70,15 @@ export default function Home() {
           toggleCard1Colors={toggleCard1Colors} // Pass the toggle function as a prop
           toggleCard2Colors={toggleCard2Colors} // Pass the toggle function as a prop
         />
-              {/* Buttons to toggle colors for each card */}
-      <div className="mt-4 flex gap-8">
-        <button onClick={toggleCard1Colors} className="px-4 py-2 bg-blue-500 text-white rounded">
-          Toggle Card 1 Colors
-        </button>
-        <button onClick={toggleCard2Colors} className="px-4 py-2 bg-blue-500 text-white rounded">
-          Toggle Card 2 Colors
-        </button>
-      </div>
+        {/* Buttons to toggle colors for each card */}
+        <div className="mt-4 flex gap-8">
+          <button onClick={toggleCard1Colors} className="px-4 py-2 bg-blue-500 text-white rounded">
+            Toggle Card 1 Colors
+          </button>
+          <button onClick={toggleCard2Colors} className="px-4 py-2 bg-blue-500 text-white rounded">
+            Toggle Card 2 Colors
+          </button>
+        </div>
       </AnimatedGrid>
     </div>
   );
