@@ -2,48 +2,23 @@
 
 import React, { useState, useRef } from "react";
 import { NeonGradientCard } from "../components/ui/neon-gradient-card";
-import { AnimatedBeam } from "../components/ui/animated-beam"; // Make sure to import this
+import { AnimatedBeam } from "../components/ui/animated-beam"; 
 
-export default function MagicBeamDemo() {
+export default function BeamConnection({
+  card1Colors,
+  card2Colors,
+  beam1Colors,
+  beam2Colors,
+  toggleCard1Colors,
+  toggleCard2Colors,
+}) {
   const box1Ref = useRef(null);
   const box2Ref = useRef(null);
   const containerRef = useRef(null);
 
-  // Define two color palettes
-  const palette1 = {
-    firstColor: "#ff0000", // Red
-    secondColor: "#ff8c00", // Orange
-  };
-
-  const palette2 = {
-    firstColor: "#00ff00", // Green
-    secondColor: "#0000ff", // Blue
-  };
-
-  // State for each card's colors
-  const [card1Colors, setCard1Colors] = useState(palette1);
-  const [card2Colors, setCard2Colors] = useState(palette1);
-
-  // Function to toggle colors for card 1
-  const toggleCard1Colors = () => {
-    setCard1Colors((prevColors) =>
-      prevColors.firstColor === palette1.firstColor ? palette2 : palette1
-    );
-  };
-
-  // Function to toggle colors for card 2
-  const toggleCard2Colors = () => {
-    setCard2Colors((prevColors) =>
-      prevColors.firstColor === palette1.firstColor ? palette2 : palette1
-    );
-  };
-
   return (
-    <div
-      className="relative flex flex-col items-center justify-center w-full h-64"
-      ref={containerRef}
-    >
-      <div className="flex gap-16">
+    <div className="relative flex flex-col items-center justify-center w-full h-64" ref={containerRef}>
+      <div className="flex gap-64">
         {/* Neon Card 1 */}
         <NeonGradientCard
           className="w-80 h-20 items-center justify-center text-center"
@@ -71,8 +46,9 @@ export default function MagicBeamDemo() {
         </NeonGradientCard>
       </div>
 
-      {/* Render the Animated Beams */}
+      {/* Render the Animated Beams with dynamic beam colors */}
       <AnimatedBeam
+        key={`beam1-${beam1Colors.start}-${beam1Colors.stop}`} 
         containerRef={containerRef}
         fromRef={box1Ref}
         toRef={box2Ref}
@@ -82,9 +58,12 @@ export default function MagicBeamDemo() {
         endXOffset={0}
         curvature={150}
         duration={4}
+        gradientStartColor={beam1Colors.start} 
+        gradientStopColor={beam1Colors.stop} 
       />
 
       <AnimatedBeam
+        key={`beam2-${beam2Colors.start}-${beam2Colors.stop}`} 
         containerRef={containerRef}
         fromRef={box2Ref}
         toRef={box1Ref}
@@ -95,6 +74,8 @@ export default function MagicBeamDemo() {
         curvature={-150}
         reverse={true}
         duration={4}
+        gradientStartColor={beam2Colors.start} 
+        gradientStopColor={beam2Colors.stop} 
       />
 
       {/* Buttons to toggle colors for each card */}

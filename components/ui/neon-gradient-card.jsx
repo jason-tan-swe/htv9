@@ -82,4 +82,5 @@ const NeonGradientCard = forwardRef(({
   );
 });
 
+NeonGradientCard.displayName = "NeonGradientCard";
 export { NeonGradientCard };

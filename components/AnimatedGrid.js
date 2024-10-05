@@ -7,9 +7,9 @@ export default function AnimatedGrid({ children }) {
       {/* Animated Grid Pattern */}
       <AnimatedGridPattern
         numSquares={40}
-        maxOpacity={0.1}
+        maxOpacity={0.2}
         duration={3}
-        repeatDelay={1}
+        repeatDelay={0.3}
         className={cn(
           "[mask-image:radial-gradient(1000px_circle_at_center,white,transparent)]",
           "absolute inset-0 h-full w-full skew-y-12 opacity-60 z-0" // Set z-index to 0
