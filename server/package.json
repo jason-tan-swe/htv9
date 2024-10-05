@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
+    "prestart": "npm install",
     "start": "node .",
-    "dev": "nodemon ."
+    "dev": "npm install && nodemon ."
   },
   "author": "",
   "license": "ISC",
