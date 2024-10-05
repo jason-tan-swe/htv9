@@ -7,6 +7,7 @@ import cors from "cors"
 import { connectToDatabase } from "./models/index.js";
 import Alert from "./models/alert.js";
 import User from "./models/user.js";
+import Pact from "./models/pact.js";
 
 const app = express();
 
@@ -31,23 +32,92 @@ io.on('connection', async (socket) => {
   console.log('a user connected');
 
   socket.on("pact:create", async (payload) => {
-    console.log("pact:create")
     try {
-      // Create a room in MongoDB with the current user
+      // Get the current player
       await connectToDatabase()
-      const alert = new Alert({
-        message: "hello",
-        id: 1
+      const player = await User.findOne({ email: payload.email })
+
+      // Create a room in MongoDB with the current user
+      const pact = new Pact({
+        players: [player]
       })
-      await alert.save()
+      await pact.save()
+
+      // Join the player to a room
+      await socket.join(pact.id)
+
+      socket.data.pactId = pact.id
       
       // Emit to the players
+      io.to(socket.id).emit("pact:join", {
+        players: pact.players,
+        pactId: pact.id,
+        hasPlayerOneConfirmed: pact.hasPlayerOneConfirmed,
+        hasPlayerTwoConfirmed: pact.hasPlayerTwoConfirmed,
+      })
     } catch (err) {
       console.error(err)
     }
   })
-  socket.on("pact:join", (payload) => {
-    console.log("pact:join")
+  socket.on("pact:join", async (payload) => {
+    console.log("pact:join", payload)
+    const { email, pactId } = payload
+    try {
+      // Get the current player
+      await connectToDatabase()
+      const player = await User.findOne({ email })
+
+      // Get the pact to join and add the new player
+      const pact = await Pact.findById(pactId).populate('players')
+      pact.players.push(player)
+
+      // Save updates and reflect in socket
+      await pact.save()
+      await socket.join(pact.id)
+
+      socket.data.pactId = pact.id
+      
+      // Emit to the players
+      io.to(pact.id).emit("pact:join", {
+        players: pact.players,
+        pactId: pact.id,
+        hasPlayerOneConfirmed: pact.hasPlayerOneConfirmed,
+        hasPlayerTwoConfirmed: pact.hasPlayerTwoConfirmed,
+      })
+    } catch (err) {
+      console.error(err)
+    }
+  })
+  socket.on("pact:ready", async (payload) => {
+    const { email, pactId } = payload
+    console.log("Got", email, pactId)
+    try {
+      // Get the current player
+      await connectToDatabase()
+      const player = await User.findOne({ email })
+
+      // Get the pact to join and add the new player
+      const pact = await Pact.findById(pactId).populate('players')
+      const isFirstPlayer = pact.players.findIndex(p => p.id === player.id) === 0 ?? 1
+      if (isFirstPlayer) {
+        pact.hasPlayerOneConfirmed = !pact.hasPlayerOneConfirmed
+      } else {
+        pact.hasPlayerTwoConfirmed = !pact.hasPlayerTwoConfirmed
+      }
+
+      // Save updates and reflect in socket
+      await pact.save()
+      
+      // Emit to the players
+      io.to(pact.id).emit("pact:ready", {
+        players: pact.players,
+        pactId: pact.id,
+        hasPlayerOneConfirmed: pact.hasPlayerOneConfirmed,
+        hasPlayerTwoConfirmed: pact.hasPlayerTwoConfirmed,
+      })
+    } catch (err) {
+      console.error(err)
+    }
   })
   socket.on("pact:leave", () => {
     console.log("pact:leave")

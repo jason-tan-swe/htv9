@@ -4,13 +4,12 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { gsap } from "gsap";
 import Typography from "@mui/material/Typography";
 import { VelocityScroll } from "../../components/ui/scroll-based-velocity.jsx";
-import "./page.css";
 import Lenis from "@studio-freight/lenis";
 import localFont from "next/font/local";
 
 gsap.registerPlugin(ScrollTrigger);
 const satoshi = localFont({
-  src: "../fonts/Satoshi-Regular.woff",
+  src: "../../fonts/Satoshi-Regular.woff",
   variable: "--font-geist-sans",
   weight: "100 900",
 });

@@ -8,4 +8,4 @@ const SignIn = () => (
   }}>Sign in with Google</button>
 )
 
-export default Signin
+export default SignIn

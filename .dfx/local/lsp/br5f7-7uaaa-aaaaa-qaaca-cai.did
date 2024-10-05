@@ -1,9 +1,0 @@
-type NFT = 
- service {
-   getMetadata: () -> (text) query;
-   transfer: (principal) -> (bool);
- };
-service : {
-  getNFTs: () -> (vec NFT) query;
-  mintNFT: (text, principal, text) -> (NFT);
-}

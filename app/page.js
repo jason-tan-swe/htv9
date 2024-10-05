@@ -1,10 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react"; // Import useState and useEffect
+import { useEffect } from "react"; // Import useState and useEffect
 import { socket } from "../socket";
-import AnimatedGrid from "../components/AnimatedGrid";
-import BeamConnection from "../components/BeamConnection";
-import Lenis from "@studio-freight/lenis";
 
 export default function Home() {
   useEffect(() => {
@@ -16,11 +13,6 @@ export default function Home() {
 
   return (
     <div className="relative w-full h-screen">
-      {" "}
-      {/* Force full width and height */}
-      <AnimatedGrid>
-        <BeamConnection />
-      </AnimatedGrid>
     </div>
   );
 }
