@@ -1,0 +1,26 @@
+{
+  "canisters": {
+    "htv9_backend": {
+      "main": "src/htv9_backend/main.mo",
+      "type": "motoko"
+    },
+    "htv9_frontend": {
+      "dependencies": [
+        "htv9_backend"
+      ],
+      "source": [
+        "src/htv9_frontend/dist"
+      ],
+      "type": "assets",
+      "workspace": "htv9_frontend"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
