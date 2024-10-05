@@ -19,7 +19,7 @@ const io = new Server(server, {
     origin: "http://localhost:3000"
   }
 });
-
+connectToDatabase()
 const port = 8080
 
 /**
