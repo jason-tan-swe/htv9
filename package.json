@@ -2,6 +2,7 @@
   "name": "htv9",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "both": "concurrently \"next dev\" \"cd server && npm run dev\"",
