@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "both": "concurrently \"next dev\" \"cd server && npm run dev\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -20,6 +21,7 @@
   "devDependencies": {
     "@types/node": "22.7.4",
     "@types/react": "18.3.11",
+    "concurrently": "^9.0.1",
     "eslint": "^8",
     "eslint-config-next": "14.2.14",
     "postcss": "^8",
