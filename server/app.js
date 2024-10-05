@@ -32,14 +32,17 @@ io.on('connection', async (socket) => {
   console.log('a user connected');
 
   socket.on("pact:create", async (payload) => {
+    const { email, pactMessage } = payload
     try {
+      console.log(email, pactMessage)
       // Get the current player
       await connectToDatabase()
-      const player = await User.findOne({ email: payload.email })
+      const player = await User.findOne({ email })
 
       // Create a room in MongoDB with the current user
       const pact = new Pact({
-        players: [player]
+        players: [player],
+        playerOneMsg: pactMessage
       })
       await pact.save()
 
@@ -54,6 +57,8 @@ io.on('connection', async (socket) => {
         pactId: pact.id,
         hasPlayerOneConfirmed: pact.hasPlayerOneConfirmed,
         hasPlayerTwoConfirmed: pact.hasPlayerTwoConfirmed,
+        playerOneMsg: pactMessage,
+        playerTwoMsg: '',
       })
     } catch (err) {
       console.error(err)
@@ -61,7 +66,7 @@ io.on('connection', async (socket) => {
   })
   socket.on("pact:join", async (payload) => {
     console.log("pact:join", payload)
-    const { email, pactId } = payload
+    const { email, pactId, pactMessage } = payload
     try {
       // Get the current player
       await connectToDatabase()
@@ -70,6 +75,7 @@ io.on('connection', async (socket) => {
       // Get the pact to join and add the new player
       const pact = await Pact.findById(pactId).populate('players')
       pact.players.push(player)
+      pact.playerTwoMsg = pactMessage
 
       // Save updates and reflect in socket
       await pact.save()
@@ -83,6 +89,8 @@ io.on('connection', async (socket) => {
         pactId: pact.id,
         hasPlayerOneConfirmed: pact.hasPlayerOneConfirmed,
         hasPlayerTwoConfirmed: pact.hasPlayerTwoConfirmed,
+        playerOneMsg: pact.playerOneMsg,
+        playerTwoMsg: pactMessage,
       })
     } catch (err) {
       console.error(err)
@@ -106,6 +114,7 @@ io.on('connection', async (socket) => {
       }
 
       // Save updates and reflect in socket
+      console.log(pact)
       await pact.save()
       
       // Emit to the players
@@ -114,7 +123,11 @@ io.on('connection', async (socket) => {
         pactId: pact.id,
         hasPlayerOneConfirmed: pact.hasPlayerOneConfirmed,
         hasPlayerTwoConfirmed: pact.hasPlayerTwoConfirmed,
+        playerOneMsg: pact.playerOneMsg,
+        playerTwoMsg: pact.playerTwoMsg,
       })
+
+      // TODO: Check if both are ready, if so, emit event to set a pact in progress
     } catch (err) {
       console.error(err)
     }

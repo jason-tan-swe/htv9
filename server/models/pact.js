@@ -9,6 +9,8 @@ const pactSchema = new mongoose.Schema({
     enum: ['open', 'closed', 'in-progress'],
     default: 'open',
   },
+  playerOneMsg: String,
+  playerTwoMsg: String,
   createdAt: { type: Date, default: Date.now },
 });
 

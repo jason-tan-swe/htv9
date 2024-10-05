@@ -5,6 +5,8 @@ import { NeonGradientCard } from "../components/ui/neon-gradient-card";
 import { AnimatedBeam } from "../components/ui/animated-beam"; 
 
 export default function BeamConnection({
+  title1,
+  title2,
   card1Colors,
   card2Colors,
   beam1Colors,
@@ -28,7 +30,7 @@ export default function BeamConnection({
           neonColors={card1Colors} // Using the state for card 1's colors
         >
           <span className="pointer-events-none z-10 h-full whitespace-pre-wrap bg-gradient-to-br from-[#ff2975] from-35% to-[#00FFF1] bg-clip-text text-center text-4xl font-regular leading-none tracking-tighter text-transparent dark:drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
-            Tom Higgins
+            {title1 ?? ''}
           </span>
         </NeonGradientCard>
 
@@ -41,7 +43,7 @@ export default function BeamConnection({
           neonColors={card2Colors} // Using the state for card 2's colors
         >
           <span className="pointer-events-none z-10 h-full whitespace-pre-wrap bg-gradient-to-br from-[#ff2975] from-35% to-[#00FFF1] bg-clip-text text-center text-4xl font-regular leading-none tracking-tighter text-transparent dark:drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
-            Dan Smith
+            {title2 ?? ''}
           </span>
         </NeonGradientCard>
       </div>
