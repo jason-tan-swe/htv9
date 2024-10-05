@@ -77,16 +77,6 @@ export default function BeamConnection({
         gradientStartColor={beam2Colors.start} 
         gradientStopColor={beam2Colors.stop} 
       />
-
-      {/* Buttons to toggle colors for each card */}
-      <div className="mt-4 flex gap-8">
-        <button onClick={toggleCard1Colors} className="px-4 py-2 bg-blue-500 text-white rounded">
-          Toggle Card 1 Colors
-        </button>
-        <button onClick={toggleCard2Colors} className="px-4 py-2 bg-blue-500 text-white rounded">
-          Toggle Card 2 Colors
-        </button>
-      </div>
     </div>
   );
 }
