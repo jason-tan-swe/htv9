@@ -1,174 +1,111 @@
 "use client";
-import { useEffect, useRef } from "react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { gsap } from "gsap";
-import Typography from "@mui/material/Typography";
-import { VelocityScroll } from "../../components/ui/scroll-based-velocity.jsx";
-import Lenis from "@studio-freight/lenis";
-import localFont from "next/font/local";
 
-gsap.registerPlugin(ScrollTrigger);
-const satoshi = localFont({
-  src: "../../fonts/Satoshi-Regular.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-export default function Home() {
-  const spinnerRef = useRef();
-  const mainContextRef = useRef();
-  useEffect(() => {
-    const gridItems = document.querySelectorAll(".grid-item");
-    const lenis = new Lenis({
-      duration: 1.2, // The duration of the smooth scroll
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Easing function for the scroll
-      smooth: true,
-    });
+import React, { useState } from 'react';
 
-    const raf = (time) => {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    };
+const friends = [
+  { name: 'Alice', pactInfo: 'You and Alice are currently working on a fitness pact.', isComplete: false },
+  { name: 'Bob', pactInfo: 'You and Bob are collaborating on a study pact.', isComplete: false },
+  { name: 'Charlie', pactInfo: 'You and Charlie have a pact to read a book a week.', isComplete: false },
+  { name: 'David' },
+  { name: 'Eve' },
+  { name: 'Frank' },
+  { name: 'George' },
+  { name: 'Hannah' },
+  { name: 'Irene' },
+  { name: 'Albert' },
+  { name: 'Dodd' },
+  // Add more friends as needed
+];
 
-    requestAnimationFrame(raf);
+function HomePage() {
+  const [selectedFriend, setSelectedFriend] = useState(null);
+  const [friendsList, setFriendsList] = useState(friends);
 
-    const t1 = gsap.timeline({
-      scrollTrigger: {
-        trigger: mainContextRef.current,
-        start: "top top", // Start when the element hits the center of the viewport
-        end: "bottom top", // End when the bottom of the element reaches the top of the viewport
-        pin: true, // Pin the element in place during the animation
-        scrub: true, // Smooth scrubbing for a better experience
-        markers: true, // Enable markers to visualize where the animation starts and ends
-      },
-    });
+  const handleClick = (friend) => {
+    setSelectedFriend(friend);
+  };
 
-    t1.fromTo(
-      mainContextRef.current,
-      { y: 0, scale: 0.5 }, // Starting values
-      { y: 100, scale: 1, ease: "power1.out" } // Ending values
+  const closeModal = () => {
+    setSelectedFriend(null);
+  };
+
+  const markAsComplete = (friend) => {
+    const updatedFriends = friendsList.map((f) =>
+      f.name === friend.name ? { ...f, isComplete: true } : f
     );
-
-    // GSAP Animation
-    gsap.to(gridItems, {
-      opacity: 1, // Start at fully visible
-      y: 0, // No vertical offset initially
-      scale: 1, // Full size initially
-      ease: "power1.out",
-      stagger: 0.05, // Add stagger to make it feel smoother
-    });
-
-    return () => {
-      lenis.destroy();
-      cancelAnimationFrame(raf);
-    };
-  }, []);
+    setFriendsList(updatedFriends);
+    closeModal();
+  };
 
   return (
-    <>
-      {/* Section 1: Header and Spinner */}
-      <div className="relative flex flex-col items-center h-screen bg-white z-10">
-        <Typography
-          variant="h1"
-          component="h1"
-          gutterBottom
-          sx={{
-            fontWeight: "bold",
-            fontSize: { md: "6rem", sm: "6rem", lg: "8rem" },
-          }}
-        >
-          header text
-        </Typography>
+    <div className="min-h-screen bg-gray-100 p-6">
+      <h1 className="text-3xl font-bold mb-6">Active Pacts</h1>
 
-        {/* Spinner at bottom */}
-        <div ref={spinnerRef} className="absolute bottom-0 left-0 right-0">
-          <VelocityScroll
-            default_velocity={5}
-            text="2dicks"
-            className="font-display satoshi  mb-5 text-center text-4xl tracking-[-0.02em] text-black drop-shadow-sm dark:text-white md:text-4xl md:leading-[3.5rem]"
-          />
-        </div>
-        {/* Section 2: Next Viewport Height */}
-        <div
-          ref={mainContextRef}
-          className="h-screen w-screen justify-center bg-white items-center z-10"
-        >
-          <div className=" w-full h-full  rounded-lg shadow-lg flex items-center justify-center">
-            <div className="flex flex-col">
-              <button className="bg-blue-500 text-white rounded-lg px-4 py-2 font-semibold">
-                {" "}
-                Dick1
-              </button>
-              <button className="bg-blue-500 text-white rounded-lg px-4 py-2 font-semibold">
-                Dick2
-              </button>
-              <button className="bg-blue-500 text-white rounded-lg px-4 py-2 font-semibold">
-                Dick3
-              </button>
+      {/* Active Pacts */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        {friendsList.slice(0, 3).map((friend, index) => (
+          <button
+            key={index}
+            onClick={() => handleClick(friend)}
+            className={`bg-gradient-to-r ${
+              friend.isComplete
+                ? 'from-gray-400 to-gray-500'
+                : 'from-green-400 to-blue-500'
+            } text-white p-4 rounded-lg shadow-md transform hover:scale-105 transition-transform`}
+          >
+            <h2 className="text-xl font-semibold">{friend.name}</h2>
+            <p className="mt-2">
+              {friend.isComplete ? 'Pact Complete' : 'Tap to view pact details'}
+            </p>
+          </button>
+        ))}
+      </div>
 
-              <button className="mt-2 bg-yellow-500 text-white rounded-lg px-4 py-2 font-semibold">
-                {" "}
-                Dick1
-              </button>
-              <button className="bg-yellow-500 text-white rounded-lg px-4 py-2 font-semibold">
-                Dick2
-              </button>
-              <button className="bg-yellow-500 text-white rounded-lg px-4 py-2 font-semibold">
-                Dick3
-              </button>
-            </div>
-          </div>
+      {/* Previous Pacts - Scrollable */}
+      <div>
+        <h2 className="text-2xl font-semibold mb-4">Friends</h2>
+        <div className="h-[60vh] overflow-y-auto bg-white p-4 rounded-lg shadow-sm">
+          <ul className="space-y-3">
+            {friendsList.slice(3).map((friend, index) => (
+              <li
+                key={index}
+                className="bg-gray-100 p-4 rounded-lg shadow-sm flex items-center justify-between"
+              >
+                <div className="text-lg">{friend.name}</div>
+                {friend.pactInfo && friend.isComplete && (
+                  <span className="text-green-600 font-bold">✔️ Completed</span>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 
-      {/* Section 3: Additional content, similar to the phone section */}
-      {/* <div className="flex justify-center h-[100vh] bg-blue-50">
-        <div className="grid grid-cols-3 grid-rows-3 gap-6 p-6 auto-rows-auto">
-          <div className="col-span-2 row-span-3 p-6 bg-white shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300 grid-item">
-            <h3 className="text-lg font-semibold text-gray-800">
-              Save your files
+      {/* Pact Details Modal */}
+      {selectedFriend && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-auto">
+            <h3 className="text-2xl font-bold mb-4">
+              Pact with {selectedFriend.name}
             </h3>
-            <p className="text-gray-500 mb-4">
-              We automatically save your files as you type.
-            </p>
-            <a
-              href="/"
-              className="text-blue-500 hover:underline inline-flex items-center"
+            <p className="text-gray-700 mb-6">{selectedFriend.pactInfo}</p>
+            <button
+              onClick={() => markAsComplete(selectedFriend)}
+              className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors mb-4"
             >
-              Learn more
-            </a>
-          </div>
-
-          <div className="col-span-1 row-span-1 p-6 bg-red-50 shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300 grid-item">
-            <h3 className="text-lg font-semibold text-gray-800">
-              Notifications
-            </h3>
-            <p className="text-gray-500 mb-4">
-              Get notified when someone shares a file or mentions you in a
-              comment.
-            </p>
-            <a
-              href="/"
-              className="text-blue-500 hover:underline inline-flex items-center"
+              Mark as Complete
+            </button>
+            <button
+              onClick={closeModal}
+              className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
             >
-              Learn more
-            </a>
-          </div>
-
-          <div className="col-span-1 row-span-1 p-6 bg-blue-50 shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300 grid-item">
-            <h3 className="text-lg font-semibold text-gray-800">Item 2</h3>
-            <p className="text-gray-500 mb-4">
-              Additional content for the second row of the right column.
-            </p>
-          </div>
-
-          <div className="col-span-1 row-span-1 p-6 bg-yellow-50 shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300 grid-item">
-            <h3 className="text-lg font-semibold text-gray-800">Item 3</h3>
-            <p className="text-gray-500 mb-4">
-              Additional content for the third row of the right column.
-            </p>
+              Close
+            </button>
           </div>
         </div>
-      </div> */}
-    </>
+      )}
+    </div>
   );
 }
+
+export default HomePage;
