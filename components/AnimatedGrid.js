@@ -7,7 +7,7 @@ export default function AnimatedGrid({ children }) {
       {/* Animated Grid Pattern */}
       <AnimatedGridPattern
         numSquares={40}
-        maxOpacity={0.2}
+        maxOpacity={0.1}
         duration={3}
         repeatDelay={0.3}
         className={cn(
