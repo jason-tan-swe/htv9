@@ -29,14 +29,39 @@ function HomePage() {
     setSelectedFriend(null);
   };
 
-  const markAsComplete = (friend) => {
-    const updatedFriends = friendsList.map((f) =>
-      f.name === friend.name ? { ...f, isComplete: true } : f
-    );
-    setFriendsList(updatedFriends);
-    closeModal();
-  };
+  const markAsComplete = async (friend) => {
+    try {
+      // Send a PATCH request to the endpoint to update the pact status
+      const response = await fetch(`/pact/${friend.pactId}/complete`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: friend.userId, // Replace with the actual userId from the friend object or context
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to update pact status');
+      }
 
+      console.log("Call Successful");
+  
+      const updatedPact = await response.json();
+  
+      // Update the local state to reflect the completed pact
+      const updatedFriends = friendsList.map((f) =>
+        f.name === friend.name ? { ...f, isComplete: true } : f
+      );
+      setFriendsList(updatedFriends);
+      closeModal();
+  
+    } catch (error) {
+      console.error('Error marking pact as complete:', error);
+    }
+  };
+  
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <h1 className="text-3xl font-bold mb-6">Active Pacts</h1>

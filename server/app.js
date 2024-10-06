@@ -10,6 +10,7 @@ import User from "./models/user.js";
 import Pact from "./models/pact.js";
 
 const app = express();
+app.use(express.json());
 
 app.use(cors());
 
@@ -19,8 +20,91 @@ const io = new Server(server, {
     origin: "http://localhost:3000"
   }
 });
-connectToDatabase()
+
+connectToDatabase();
 const port = 8080
+
+// Toggle completion status for a pact and update relationships
+app.patch('/pact/:pactId/complete', async (req, res) => {
+  const { pactId } = req.params;
+  const { userId } = req.body; // Get userId from the request body
+
+  try {
+    await connectToDatabase();
+
+    // Find the pact and populate players
+    const pact = await Pact.findById(pactId).populate('players');
+
+    if (!pact) {
+      return res.status(404).json({ message: 'Pact not found' });
+    }
+
+    // Determine which player is confirming completion
+    const isFirstPlayer = pact.players[0]._id.toString() === userId;
+
+    if (isFirstPlayer) {
+      // Toggle Player One's confirmation status
+      pact.hasPlayerOneConfirmed = !pact.hasPlayerOneConfirmed;
+    } else if (pact.players[1]._id.toString() === userId) {
+      // Toggle Player Two's confirmation status
+      pact.hasPlayerTwoConfirmed = !pact.hasPlayerTwoConfirmed;
+    } else {
+      return res.status(400).json({ message: 'User is not part of this pact' });
+    }
+
+    // If both players confirm, mark the pact as complete and handle relationships
+    if (pact.hasPlayerOneConfirmed && pact.hasPlayerTwoConfirmed) {
+      pact.isComplete = true;
+      pact.state = 'closed';
+
+      const playerOne = pact.players[0];
+      const playerTwo = pact.players[1];
+
+      // Remove pact from both players' activePacts
+      await User.updateMany(
+        { _id: { $in: [playerOne._id, playerTwo._id] } },
+        { $pull: { activePacts: pact._id } }
+      );
+
+      // Check if players are already friends (relationship exists)
+      let relationship = await Relationship.findOne({
+        $or: [
+          { user1: playerOne._id, user2: playerTwo._id },
+          { user1: playerTwo._id, user2: playerOne._id }
+        ]
+      });
+
+      if (relationship) {
+        // Increment the relationship score if they are already friends
+        relationship.score += 10; // Example score increment, you can adjust as needed
+        await relationship.save();
+      } else {
+        // Create a new relationship if they are not friends yet
+        const newRelationship = new Relationship({
+          user1: playerOne._id,
+          user2: playerTwo._id,
+          score: 10 // Initial score when a new friendship is formed
+        });
+        await newRelationship.save();
+      }
+    }
+
+    // Save the updated pact
+    await pact.save();
+
+    // Respond with the updated pact
+    res.status(200).json({
+      pactId: pact._id,
+      hasPlayerOneConfirmed: pact.hasPlayerOneConfirmed,
+      hasPlayerTwoConfirmed: pact.hasPlayerTwoConfirmed,
+      isComplete: pact.isComplete,
+      state: pact.state,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 /**
  * 1. Have rooms of two users through "friend code"
@@ -127,6 +211,16 @@ io.on('connection', async (socket) => {
         playerTwoMsg: pact.playerTwoMsg,
         isFirstPlayer,
       })
+
+      console.log(pact.hasPlayerOneConfirmed, pact.hasPlayerTwoConfirmed)
+
+      if (pact.hasPlayerOneConfirmed && pact.hasPlayerTwoConfirmed) {
+        io.to(pact.id).emit("pact:inProgress", {
+          status: "Pact is now in progress",
+        })
+        pact.state = "in-progress"
+        await pact.save()
+      }
 
       // TODO: Check if both are ready, if so, emit event to set a pact in progress
     } catch (err) {

@@ -84,7 +84,12 @@ export default function Lobby() {
           ...fields
         })
       }
+      const onPactCreated = (fields) => {
+        router.push('/home')
+      }
+      
       socket.on("pact:ready", onPactJoin)
+      socket.on("pact:inProgress", onPactCreated)
     }, [])
 
   if (!session) {

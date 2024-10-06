@@ -6,6 +6,9 @@ const userSchema = new mongoose.Schema({
   email: String,
   image: String,
   emailVerified: Boolean,
+  activePacts: [
+    { type: mongoose.Schema.Types.ObjectId, ref: 'Pact' }
+  ],
   relationships: [
     { type: mongoose.Schema.Types.ObjectId, ref: 'Relationship' }
   ],
