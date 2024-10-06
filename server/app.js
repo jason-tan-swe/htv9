@@ -200,6 +200,7 @@ io.on("connection", async (socket) => {
         hasPlayerTwoConfirmed: pact.hasPlayerTwoConfirmed,
         playerOneMsg: pact.playerOneMsg,
         playerTwoMsg: pactMessage,
+        hasPlayerJoined: false,
         category: pact.category,
       })
     } catch (err) {
@@ -233,7 +234,7 @@ io.on("connection", async (socket) => {
         playerOneMsg: pact.playerOneMsg,
         playerTwoMsg: pact.playerTwoMsg,
         isFirstPlayer: socket.data.isFirstPlayer,
-        hasPlayerJoined: true,
+        hasPlayerJoined: false,
       })
 
 

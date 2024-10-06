@@ -72,7 +72,7 @@ export default function Lobby() {
   // Function to toggle colors for card 1 (including the beam)
   const toggleCard1Colors = () => {
     const newCard1Colors =
-      card1Colors.firstColor === palette1.firstColor ? palette2 : palette1;
+    card1Colors.firstColor === palette1.firstColor ? palette2 : palette1;
     setCard1Colors(newCard1Colors);
     setBeam1Colors({
       start: newCard1Colors.firstColor, // Use the full palette1 or palette2 for the beam
@@ -92,16 +92,23 @@ export default function Lobby() {
   };
 
   useEffect(() => {
+    if (shouldUpdate) {
+      if (state.isFirstPlayer) {
+        toggleCard1Colors();
+      } else {
+        toggleCard2Colors();
+      }
+      setShouldUpdate(false)
+    }
+  }, [shouldUpdate])
+
+  useEffect(() => {
     const onPactJoin = (fields) => {
       updateGameState({
         ...fields,
       });
       if (!fields.hasPlayerJoined) {
-        if (fields.isFirstPlayer) {
-          toggleCard1Colors();
-        } else {
-          toggleCard2Colors();
-        }
+        setShouldUpdate(true)
       }
     };
     const onPactCreated = (fields) => {
