@@ -127,6 +127,39 @@ app.get("/user/active-pacts/:email", async (req, res) => {
   }
 });
 
+app.get('/user/:email/friends', async (req, res) => {
+  const { email } = req.params;
+
+  try {
+    // Find the user based on email
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Find relationships where the user is either user1 or user2
+    const relationships = await Relationship.find({
+      $or: [
+        { user1: user._id },
+        { user2: user._id }
+      ]
+    }).populate('user1 user2', 'name email'); // Populate with name and email
+
+    // Map to get friends
+    const friends = relationships.map(rel => {
+      return rel.user1._id.equals(user._id)
+        ? rel.user2
+        : rel.user1;
+    });
+
+    res.json({ friends });
+  } catch (error) {
+    console.error('Error fetching friends:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 /**
  * 1. Have rooms of two users through "friend code"
  * 2. Have users send "ready" messages
