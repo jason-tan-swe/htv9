@@ -23,7 +23,7 @@ export default function BeamConnection({
       <div className="flex gap-64">
         {/* Neon Card 1 */}
         <NeonGradientCard
-          className="w-80 h-20 items-center justify-center text-center"
+          className="w-80 h-20 items-center justify-center text-center font-Expose"
           ref={box1Ref}
           borderSize={1}
           borderRadius={10}

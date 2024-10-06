@@ -38,8 +38,8 @@ export default function Lobby() {
   };
 
   const palette1 = {
-    firstColor: "#ff0000", // Red
-    secondColor: "#DC143C", // Crimson
+    firstColor: "#FFB885", // Peach
+    secondColor: "#FFA96B", // Dark Peach
   };
 
   const palette2 = {
@@ -153,18 +153,18 @@ export default function Lobby() {
           toggleCard2Colors={toggleCard2Colors}
         />
 
-        <div className="mt-6 flex flex-col gap-8">
+        <div className="mt-14 flex flex-col gap-8">
         <button
           onClick={handleReadyUp}
           ref={buttonRef}
-          className={`px-10 py-4 rounded-full text-xl text-white font-bold transition-transform transform-gpu duration-300 ${
+          className={`px-10 py-4 rounded-full text-xl text-white font-bold transition-transform transform-gpu duration-300 font-Expose ${
             isReady
-              ? "bg-green-500 cursor-not-allowed opacity-80"
-              : "bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 hover:scale-105 shadow-lg"
+              ? "bg-green-500 cursor-not-allowed opacity-80 font-Expose"
+              : "bg-gradient-to-r from-peach to-darkpeach hover:from-orange-500 hover:to-orange-600 hover:scale-105 shadow-lg font-Expose"
           }`}
           disabled={isReady} // Disable the button after clicking
         >
-          {isReady ? "Ready!" : "Ready Up"}
+          {isReady ? "Comitted" : "Confirm Pact"}
       </button>
 
 
@@ -175,7 +175,7 @@ export default function Lobby() {
             alt="Kiwi Logo"
             className="w-10 h-10 mr-4" // Adjust the size (w-10, h-10) as needed
           />
-          <span className="text-2xl font-semibold text-gray-700 mr-2">
+          <span className="text-1xl text-gray-700 mr-2 font-Expose">
             Lobby Code: {state.pactId ? state.pactId : "ID Not Available"}
           </span>
           <CopyToClipboard text={state.pactId} onCopy={handleCopy}>
