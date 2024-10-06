@@ -8,6 +8,7 @@ import { connectToDatabase } from "./models/index.js";
 import Alert from "./models/alert.js";
 import User from "./models/user.js";
 import Pact from "./models/pact.js";
+import Relationship from "./models/relationship.js";
 
 const app = express();
 app.use(express.json());
@@ -26,39 +27,44 @@ const port = 8080
 
 // Toggle completion status for a pact and update relationships
 app.patch('/pact/:pactId/complete', async (req, res) => {
+  console.log("Jason is completing")
   const { pactId } = req.params;
   const { userId } = req.body; // Get userId from the request body
 
   try {
+    console.log(req.body);
     await connectToDatabase();
-
+    
+    
+    
     // Find the pact and populate players
     const pact = await Pact.findById(pactId).populate('players');
+    const playerOne = await User.findById(pact.players[0]._id);
+    const playerTwo = await User.findById(pact.players[1]._id);
 
     if (!pact) {
       return res.status(404).json({ message: 'Pact not found' });
     }
 
     // Determine which player is confirming completion
-    const isFirstPlayer = pact.players[0]._id.toString() === userId;
+    const isFirstPlayer = pact.players[0]._id.toString() === playerOne._id.toString();
+    
+    console.log(isFirstPlayer, pact.players[1]._id.toString(), pact.players[0]._id.toString(), userId, pactId)
 
     if (isFirstPlayer) {
       // Toggle Player One's confirmation status
-      pact.hasPlayerOneConfirmed = !pact.hasPlayerOneConfirmed;
-    } else if (pact.players[1]._id.toString() === userId) {
+      pact.playerOneTaskCompleted = true
+    } else if (pact.players[1]._id.toString() === playerTwo._id.toString()) {
       // Toggle Player Two's confirmation status
-      pact.hasPlayerTwoConfirmed = !pact.hasPlayerTwoConfirmed;
+      pact.playerTwoTaskCompleted = true;
     } else {
       return res.status(400).json({ message: 'User is not part of this pact' });
     }
 
     // If both players confirm, mark the pact as complete and handle relationships
-    if (pact.hasPlayerOneConfirmed && pact.hasPlayerTwoConfirmed) {
+    if (pact.playerOneTaskCompleted && pact.playerTwoTaskCompleted) {
       pact.isComplete = true;
       pact.state = 'closed';
-
-      const playerOne = pact.players[0];
-      const playerTwo = pact.players[1];
 
       // Remove pact from both players' activePacts
       await User.updateMany(
@@ -105,6 +111,29 @@ app.patch('/pact/:pactId/complete', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+app.get('/user/active-pacts/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    const user = await User.findOne({ email }).populate({
+      path: 'activePacts',
+      populate: {
+        path: 'players',
+        select: 'name email', // Only select the name and email fields
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({ activePacts: user.activePacts });
+  } catch (err) {
+    console.error('Error fetching active pacts:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 
 /**
  * 1. Have rooms of two users through "friend code"
@@ -219,6 +248,17 @@ io.on('connection', async (socket) => {
           status: "Pact is now in progress",
         })
         pact.state = "in-progress"
+        
+           // Add the pact to both players' activePacts
+          const playerOne = pact.players[0];
+          const playerTwo = pact.players[1];
+
+          // Update the players' activePacts field
+          await User.updateMany(
+            { _id: { $in: [playerOne._id, playerTwo._id] } },
+            { $addToSet: { activePacts: pact._id } } // Use $addToSet to avoid duplicates
+          );
+
         await pact.save()
       }
 
