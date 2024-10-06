@@ -5,9 +5,33 @@ import { useSession } from 'next-auth/react';
 
 function HomePage() {
   const { data: session } = useSession();
+  const [friends, setFriends] = useState([]);
   const [selectedFriend, setSelectedFriend] = useState(null);
   const [activePacts, setActivePacts] = useState([]);
   const maxPacts = 3; // Maximum number of pacts to display in the active section
+
+  // Fetch the user's friends list from the server
+  useEffect(() => {
+    const fetchFriends = async () => {
+      if (session?.user?.email) {
+        try {
+          const response = await fetch(`http://localhost:8080/user/${session.user.email}/friends`);
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch friends list');
+          }
+
+          const data = await response.json();
+          console.log(data);
+          setFriends(data.friends);
+        } catch (error) {
+          console.error('Error fetching friends:', error);
+        }
+      }
+    };
+
+    fetchFriends();
+  }, [session]);
 
   // Fetch the user's active pacts from the server
   useEffect(() => {
@@ -52,17 +76,23 @@ function HomePage() {
         }),
       });
       console.log(response);
+
       if (!response.ok) {
         throw new Error('Failed to update pact status');
       }
 
       const updatedPact = await response.json();
 
-      // Update the local state to reflect the completed pact
-      const updatedPacts = activePacts.map((p) =>
-        p._id === pact._id ? { ...p, isComplete: true } : p
-      );
-      setActivePacts(updatedPacts);
+      // If the pact is complete, remove it from active pacts
+      if (updatedPact.isComplete) {
+        setActivePacts((prevPacts) => prevPacts.filter(p => p._id !== pact._id));
+      } else {
+        // If not complete yet, update the local state to reflect that the user has completed their task
+        const updatedPacts = activePacts.map((p) =>
+          p._id === pact._id ? { ...p, isComplete: updatedPact.isComplete } : p
+        );
+        setActivePacts(updatedPacts);
+      }
       closeModal();
     } catch (error) {
       console.error('Error marking pact as complete:', error);
@@ -121,6 +151,21 @@ function HomePage() {
           </div>
         ))}
       </div>
+
+      <h2 className="text-2xl font-bold mb-4">Friends List</h2>
+
+      {/* Friends List */}
+      <ul className="mb-8">
+        {friends.length > 0 ? (
+          friends.map((friend) => (
+            <li key={friend._id} className="mb-2">
+              {friend.name} ({friend.email})
+            </li>
+          ))
+        ) : (
+          <li>No friends found</li>
+        )}
+      </ul>
 
       {/* Pact Details Modal */}
       {selectedFriend && (
