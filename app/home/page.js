@@ -9,8 +9,7 @@ import { usePactStore } from "../../stores/pact";
 
 function HomePage() {
   const { data: session } = useSession();
-  const state = usePactStore(state => state.current)
-  const updatePactStore = usePactStore(state => state.updatePactStore)
+  const { activePacts, addPact, updatePact, setPact, removePact } = usePactStore()
   const [friends, setFriends] = useState([]);
   const [selectedFriend, setSelectedFriend] = useState(null);
   const [categories, setCategories] = useState([]); // Add state for categories
@@ -23,7 +22,6 @@ function HomePage() {
     "Friendship & Family": HomeIcon,
     "Lifestyle": HeartIcon
   };
-  console.log("Jason current = ", state.activePacts)
 
   useEffect(() => {
     if (!session) {
@@ -32,30 +30,15 @@ function HomePage() {
 
     const onPactUpdate = async (payload) => {
       const { updatedPact } = payload
-      console.log("Jason Updated", payload, state.activePacts)
-
-      updatePactStore({
-        activePacts: [
-          ...state.activePacts,
-          updatedPact,
-        ],
-      })
+      updatePact(updatedPact)
     }
     const onPactClose = async (payload) => {
       const { removedPactId } = payload
-      console.log("Jason closing")
-      updatePactStore({
-        activePacts: [
-          ...state.activePacts.filter(pact => pact._id.toString() !== removedPactId)
-        ]
-      })
+      removePact(removedPactId)
     }
     const onPactJoinedActive = async (payload) => {
       const { activePacts } = payload
-      console.log("Jason joined", activePacts)
-      updatePactStore({
-        activePacts,
-      })
+      setPact(activePacts)
     }
 
     // Emit event to join all active pacts
@@ -64,7 +47,7 @@ function HomePage() {
     socket.on("pact:close", onPactClose)
     socket.on("pact:joined-active", onPactJoinedActive)
   }, [session])
-  console.log("Jason session = ", state.activePacts)
+  console.log("Jason session = ", activePacts)
   // Fetch the user's friends list from the server
   useEffect(() => {
     const fetchFriends = async () => {
@@ -88,30 +71,6 @@ function HomePage() {
 
     fetchFriends();
   }, [session]);
-
-  // Fetch the user's active pacts from the server
-  // useEffect(() => {
-  //   const fetchActivePacts = async () => {
-  //     if (session?.user?.email) {
-  //       try {
-  //         const response = await fetch(
-  //           `${process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:8080'}/user/active-pacts/${session?.user?.email}`
-  //         );
-
-  //         if (!response.ok) {
-  //           throw new Error("Failed to fetch active pacts");
-  //         }
-
-  //         const data = await response.json();
-  //         setActivePacts(data.activePacts);
-  //       } catch (error) {
-  //         console.error("Error fetching active pacts:", error);
-  //       }
-  //     }
-  //   };
-
-  //   fetchActivePacts();
-  // }, [session]);
 
   // Fetch pact categories from the server
   useEffect(() => {
@@ -162,7 +121,7 @@ function HomePage() {
       <h1 className="text-3xl font-bold mb-6">Active Pacts</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        {state.activePacts.slice(0, maxPacts).map((pact, index) => {
+        {activePacts.slice(0, maxPacts).map((pact, index) => {
           const friend = pact.players.find(
             (player) => player.email !== session?.user?.email
           );
@@ -197,7 +156,7 @@ function HomePage() {
           );
         })}
 
-        {Array.from({ length: maxPacts - state.activePacts.length }).map(
+        {Array.from({ length: maxPacts - activePacts.length }).map(
           (_, index) => (
             <Link href="/category" key={index}>
               <div className="bg-gray-200 text-gray-500 p-4 rounded-lg shadow-md flex justify-center items-center hover:bg-gray-300 transition-colors cursor-pointer">
