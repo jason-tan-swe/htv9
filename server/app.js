@@ -173,7 +173,7 @@ io.on("connection", async (socket) => {
     }
   });
   socket.on("pact:join", async (payload) => {
-    const { email, pactId, pactMessage } = payload
+    const { email, pactId, pactMessage, category } = payload
     try {
       // Get the current player
       await connectToDatabase();
