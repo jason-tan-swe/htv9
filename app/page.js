@@ -1,24 +1,44 @@
 "use client";
 
-import { useEffect } from "react"; // Import useState and useEffect
-import { socket } from "../socket";
+import { useEffect } from "react";
 import { signIn } from "next-auth/react";
-import { useGameStateState } from "../stores/game";
+import { gsap } from "gsap";
+
 export default function Home() {
+  useEffect(() => {
+    // GSAP Animation for spinning the circular text continuously
+    gsap.to(".circular-text", {
+      rotate: 360,
+      duration: 10, // Adjust the duration as needed for the speed of the spin
+      ease: "linear",
+      repeat: -1, // Infinite spinning
+      transformOrigin: "center center", // Ensures the text rotates around the center of the circle
+    });
+
+    // Optional animation to scale up the kiwi on page load
+    gsap.fromTo(
+      ".kiwi-image",
+      { scale: 0.8 },
+      { scale: 1, duration: 1.5, ease: "power2.out" }
+    );
+  }, []);
+
   return (
     <>
-      <div className="h-[100vh] bg-gradient-to-r from-purple-500 to-blue-600 text-white">
-        {/* Hero Section */}
-        <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-          <h1 className="text-5xl font-bold mb-6">
-            Stay Accountable with <span className="text-yellow-400">Pacts</span>
+      {/* Hero Section */}
+      <div className="h-[100vh] flex flex-col md:flex-row  items-center justify-between bg-kiwi relative p-6">
+        {/* Hero Text on the left */}
+        <div className="flex flex-col max-w-lg text-left">
+          <h1 className="text-6xl font-black text-color-richblack pl-4 mb-6 leading-tight block-text text-Expose">
+            Staying Accountable <br /> with{" "}
+            <span className="text-darkpeach">Pacts</span>
           </h1>
-          <p className="text-xl max-w-2xl mb-10">
+          <p className="font-Expose pl-4 font-family-body text-xl mb-10">
             Achieve your goals by forming pacts with friends and mentors. Track
             progress, stay on track, and celebrate success together.
           </p>
           <button
-            className="px-8 py-4 bg-yellow-400 text-purple-800 font-semibold rounded-full hover:bg-yellow-500 transition"
+            className="px-8 py-4 bg-darkpeach  text-white font-semibold rounded-full hover:bg-peach transition"
             onClick={async () => {
               await signIn("google", { callbackUrl: "/home" });
             }}
@@ -27,129 +47,93 @@ export default function Home() {
           </button>
         </div>
 
-        {/* How It Works Section */}
-        <div className="py-20 bg-gray-100 text-gray-900 h-screen">
-          <div className="container mx-auto px-6">
-            <h2 className="text-4xl font-bold text-center mb-12">
-              How It Works
-            </h2>
-            <div className="grid md:grid-cols-3 gap-12">
-              <div className="text-center">
-                <div className="bg-purple-500 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
-                  1
-                </div>
-                <h3 className="text-2xl font-semibold mb-4">Set a Goal</h3>
-                <p>
-                  Define your goal, whether it&apos;s personal or professional, and
-                  make a pact with someone to stay accountable.
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="bg-purple-500 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
-                  2
-                </div>
-                <h3 className="text-2xl font-semibold mb-4">Keep the Pact</h3>
-                <p>
-                  Hold friends accountable! With up to 3 pacts, stay focused
-                  without overcommitting.
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="bg-purple-500 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
-                  3
-                </div>
-                <h3 className="text-2xl font-semibold mb-4">
-                  Celebrate Success
-                </h3>
-                <p>
-                  Achieve your goals, and celebrate your progress with your
-                  accountability partners.
-                </p>
-              </div>
-            </div>
+        {/* Kiwi Image and SVG Circular Text */}
+        <div className="relative flex items-center justify-center">
+          {/* Kiwi Image */}
+          <div className="absolute kiwi-image">
+            <img
+              src="our_kiwi.png"
+              alt="Kiwi"
+              className="w-52 h-52 mx-auto"
+              style={{ clipPath: "circle(50%)" }}
+            />
           </div>
-        </div>
 
-        {/* Key Features Section */}
-        <div className="py-20">
-          <div className="container mx-auto px-6">
-            <h2 className="text-4xl font-bold text-center mb-12 text-white">
-              Key Features
-            </h2>
-            <div className="grid md:grid-cols-3 gap-12">
-              <div className="bg-white text-gray-900 p-6 rounded-lg shadow-lg">
-                <h3 className="text-2xl font-semibold mb-4">
-                  Real-Time Tracking
-                </h3>
-                <p>
-                  Monitor progress in real-time with simple yet powerful tools
-                  that keep you on track.
-                </p>
-              </div>
-              <div className="bg-white text-gray-900 p-6 rounded-lg shadow-lg">
-                <h3 className="text-2xl font-semibold mb-4">
-                  Collaborative Pacts
-                </h3>
-                <p>
-                  Create pacts with friends, family, or mentors to stay
-                  accountable and motivated.
-                </p>
-              </div>
-              <div className="bg-white text-gray-900 p-6 rounded-lg shadow-lg">
-                <h3 className="text-2xl font-semibold mb-4">
-                  Custom Reminders
-                </h3>
-                <p>
-                  Set reminders for deadlines or check-ins to ensure you never
-                  fall behind.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+          {/* SVG Text on a circular path */}
+          <svg
+            width="600"
+            height="600"
+            viewBox="0 0 600 600"
+            xmlns="http://www.w3.org/2000/svg"
+            className="circular-text"
+          >
+            <defs>
+              <path
+                id="circlePath"
+                d="M 300, 300
+                   m -200, 0
+                   a 200,200 0 1,1 400,0
+                   a 200,200 0 1,1 -400,0"
+              />
+            </defs>
 
-        {/* Testimonials Section */}
-        <div className="py-20 bg-gray-100 text-gray-900">
-          <div className="container mx-auto px-6 text-center">
-            <h2 className="text-4xl font-bold mb-12">What People Are Saying</h2>
-            <div className="grid md:grid-cols-3 gap-12">
-              <div className="bg-white p-6 rounded-lg shadow-lg">
-                <p className="mb-4">
-                &quot;The best app to keep me accountable! I&quot;ve hit every goal I&quot;ve
-                  set.&quot;
-                </p>
-                <span className="font-semibold">- Alex Johnson</span>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow-lg">
-                <p className="mb-4">
-                &quot;Forming pacts with my team has made our projects more
-                  successful than ever.&quot;
-                </p>
-                <span className="font-semibold">- Maria Lopez</span>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow-lg">
-                <p className="mb-4">
-                &quot;Finally, a way to stay motivated with the help of my
-                  friends!&quot;
-                </p>
-                <span className="font-semibold">- Brian Lee</span>
-              </div>
-            </div>
-          </div>
+            <text fill="#000" fontSize="24" fontWeight="bold">
+              <textPath
+                href="#circlePath"
+                className="circular-text-path"
+                startOffset="25%"
+              >
+                Stay Accountable with Pacts • Stay Accountable with Pacts • Stay
+                Accountable with Pacts • Stay Accountable with Pacts
+              </textPath>
+            </text>
+          </svg>
         </div>
-
-        {/* Call to Action */}
-        <div className="py-20 text-center">
-          <h2 className="text-4xl font-bold mb-8">
-            Ready to Stay Accountable?
+      </div>
+      {/* How It Works Section */}
+      <div className="py-20 bg-kiwi text-richblack h-screen">
+        <div className="container mx-auto px-6">
+          <h2 className="text-4xl font-black text-center mb-12 text-color-richblack">
+            How It Works
           </h2>
-          <p className="text-xl mb-10">
-            Join now and start making pacts with your friends and colleagues
-            today.
-          </p>
-          <button className="px-8 py-4 bg-yellow-400 text-purple-800 font-semibold rounded-full hover:bg-yellow-500 transition">
-            Sign Up for Free
-          </button>
+          <div className="grid md:grid-cols-3 gap-12">
+            <div className="text-center">
+              <div className="bg-darkpeach text-2xl  text-richblack rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
+                1
+              </div>
+              <h3 className="text-2xl font-semibold mb-4 text-richblack">
+                Set a Goal
+              </h3>
+              <p className="text-xl">
+                Define your goal, whether it's personal or professional, and
+                make a pact with someone to stay accountable.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-darkpeach text-2xl  text-richblack rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
+                2
+              </div>
+              <h3 className="text-2xl font-semibold mb-4 text-richblack">
+                Keep the Pact
+              </h3>
+              <p className="text-xl">
+                Hold friends accountable! With up to 3 pacts, stay focused
+                without overcommitting.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-darkpeach text-2xl  text-richblack rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
+                3
+              </div>
+              <h3 className="text-2xl font-semibold mb-4 text-richblack">
+                Celebrate Success
+              </h3>
+              <p className="text-xl">
+                Achieve your goals, and celebrate your progress with your
+                accountability partners.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </>

@@ -4,8 +4,14 @@
 
 body {
   font-family: Arial, Helvetica, sans-serif;
+  font-family: "Satoshi", sans-serif;
+  font-family: "General Sans", sans-serif;
+  font-family: "Expose", sans-serif;
 }
-
+html,
+body {
+  overflow-x: hidden; /* Hides the horizontal scrollbar */
+}
 @layer utilities {
   .text-balance {
     text-wrap: balance;
