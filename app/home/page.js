@@ -9,45 +9,43 @@ import { usePactStore } from "../../stores/pact";
 
 function HomePage() {
   const { data: session } = useSession();
-  const { activePacts, addPact, updatePact, setPact, removePact } = usePactStore()
+  const { activePacts, addPact, updatePact, setPact, removePact } = usePactStore();
   const [friends, setFriends] = useState([]);
   const [selectedFriend, setSelectedFriend] = useState(null);
   const maxPacts = 3; // Maximum number of pacts to display in the active section
 
-  // Category Icon Mapping
   const categoryIconMap = {
     "Skill Development": RocketIcon,
     "Creativity": Pencil1Icon,
     "Friendship & Family": HomeIcon,
-    "Lifestyle": HeartIcon
+    "Lifestyle": HeartIcon,
   };
 
   useEffect(() => {
     if (!session) {
-      return
+      return;
     }
 
     const onPactUpdate = async (payload) => {
-      const { updatedPact } = payload
-      updatePact(updatedPact)
-    }
+      const { updatedPact } = payload;
+      updatePact(updatedPact);
+    };
     const onPactClose = async (payload) => {
-      const { removedPactId } = payload
-      removePact(removedPactId)
-    }
+      const { removedPactId } = payload;
+      removePact(removedPactId);
+    };
     const onPactJoinedActive = async (payload) => {
-      const { activePacts } = payload
-      setPact(activePacts)
-    }
+      const { activePacts } = payload;
+      setPact(activePacts);
+    };
 
     // Emit event to join all active pacts
-    socket.emit("pact:join-active", { email: session?.user?.email })
-    socket.on("pact:update", onPactUpdate)
-    socket.on("pact:close", onPactClose)
-    socket.on("pact:joined-active", onPactJoinedActive)
-  }, [session])
-  console.log("Jason session = ", activePacts)
-  // Fetch the user's friends list from the server
+    socket.emit("pact:join-active", { email: session?.user?.email });
+    socket.on("pact:update", onPactUpdate);
+    socket.on("pact:close", onPactClose);
+    socket.on("pact:joined-active", onPactJoinedActive);
+  }, [session]);
+
   useEffect(() => {
     const fetchFriends = async () => {
       if (session?.user?.email) {
@@ -77,7 +75,7 @@ function HomePage() {
   const markAsComplete = async (pact) => {
     try {
       // Emit event
-      await socket.emit("pact:complete", {email: session?.user?.email, pactId: pact._id})
+      await socket.emit("pact:complete", { email: session?.user?.email, pactId: pact._id });
       closeModal();
     } catch (error) {
       console.error("Error marking pact as complete:", error);
@@ -85,7 +83,7 @@ function HomePage() {
   };
 
   if (!session) {
-    return null
+    return null;
   }
 
   return (
@@ -107,7 +105,7 @@ function HomePage() {
             : !pact.playerOneTaskCompleted;
           const gradientClass =
             currentUserTaskCompleted && otherPlayerTaskIncomplete
-              ? "from-yellow-400 to-yellow-500"
+              ? "from-peach to-darkpeach"
               : pact.isComplete
               ? "from-gray-400 to-gray-500"
               : "from-green-400 to-blue-500";
@@ -150,26 +148,21 @@ function HomePage() {
             >
               <div className="flex-1">
                 <h3 className="text-xl font-semibold">{friend.name}</h3>
-                <p className="text-gray-500">{friend.email}</p>
+                <p className="text-gray-500 font-Expose">{friend.email}</p>
                 <div className="mt-2">
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-gray-600 font-Expose">
                     Relationship Score:{" "}
-                  </span>
+                  </span >
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
-                      className="bg-blue-500 h-2 rounded-full"
+                      className="bg-darkpeach h-2 rounded-full"
                       style={{
-                        width: `${
-                          friend.score
-                            ? Math.min(friend.score, 100)
-                            : 0
-                        }%`,
+                        width: `${friend.score ? Math.min(friend.score, 100) : 0}%`,
                       }}
                     ></div>
                   </div>
                   <p className="text-xs text-gray-400 mt-1">
-                    {friend.score ? Math.min(friend.score, 100) : 0} /
-                    100
+                    {friend.score ? Math.min(friend.score, 100) : 0} / 100
                   </p>
                 </div>
               </div>
@@ -198,30 +191,46 @@ function HomePage() {
             {/* Display pact categories inline */}
             <h4 className="text-xl font-bold mb-4">Pact Category</h4>
             <div className="flex items-center space-x-3 p-3 rounded-lg shadow-md bg-gray-100 mb-6">
-            {/* Fetch and display the correct icon */}
-            {selectedFriend.category && (
-              <>
-                {categoryIconMap[selectedFriend.category] && (
-                  // Assign the icon component to a variable and then render it
-                  React.createElement(categoryIconMap[selectedFriend.category], { className: "text-2xl" })
-                )}
-                <span className="text-lg font-semibold">
-                  {selectedFriend.category}
-                </span>
-              </>
-            )}
-          </div>
+              {selectedFriend.category && (
+                <>
+                  {categoryIconMap[selectedFriend.category] &&
+                    React.createElement(categoryIconMap[selectedFriend.category], { className: "text-2xl" })}
+                  <span className="text-lg font-semibold">
+                    {selectedFriend.category}
+                  </span>
+                </>
+              )}
+            </div>
 
-          <button
-            onClick={() => markAsComplete(selectedFriend)}
-            className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors mb-4"
-          >
-            Mark as Complete
-          </button>
+            {/* Determine if the user has already marked the pact as complete */}
+            <button
+              onClick={() => markAsComplete(selectedFriend)}
+              disabled={
+                (selectedFriend.players[0].email === session?.user?.email &&
+                  selectedFriend.playerOneTaskCompleted) ||
+                (selectedFriend.players[1].email === session?.user?.email &&
+                  selectedFriend.playerTwoTaskCompleted)
+              }
+              className={`w-full py-2 rounded-lg transition-colors mb-4 font-Expose ${
+                (selectedFriend.players[0].email === session?.user?.email &&
+                  selectedFriend.playerOneTaskCompleted) ||
+                (selectedFriend.players[1].email === session?.user?.email &&
+                  selectedFriend.playerTwoTaskCompleted)
+                  ? "bg-darkestkiwi text-white cursor-not-allowed"
+                  : "bg-peach text-white hover:bg-darkpeach"
+              }`}
+            >
+              {(selectedFriend.players[0].email === session?.user?.email &&
+                selectedFriend.playerOneTaskCompleted) ||
+              (selectedFriend.players[1].email === session?.user?.email &&
+                selectedFriend.playerTwoTaskCompleted)
+                ? "Completed"
+                : "Mark as Complete"}
+            </button>
 
             <button
               onClick={closeModal}
-              className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
+              className="w-full bg-gray-400 text-white py-2 rounded-lg hover:bg-gray-500 transition-colors font-Expose"
             >
               Close
             </button>

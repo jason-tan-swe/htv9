@@ -1,3 +1,5 @@
+const { dark } = require('@mui/material/styles/createPalette');
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
@@ -16,6 +18,9 @@ module.exports = {
       colors: {
         richblack: "#171A21",
         kiwi: "#E0FF99",
+        darkkiwi: "#C4E680",
+        darkerkiwi: "#A9CC66",
+        darkestkiwi: "#8EB24C",
         peach: "#FFB885",
         darkpeach: "#FFA96B ",
 

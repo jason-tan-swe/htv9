@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { HeartIcon, HomeIcon, Pencil1Icon, RocketIcon } from "@radix-ui/react-icons"; // Example of importing Radix icon
+import MagicCard from "../../components/ui/magic-card";
 
 export default function Category() {
   const { data: session } = useSession();
@@ -108,41 +109,75 @@ export default function Category() {
   const CategoryIcon = categoryIconMap[category]; // Get the corresponding icon for the category
 
   return (
-    <>
-      <div className="flex flex-col h-screen p-6 space-y-6">
-        {/* First row */}
-        <div className="flex-1 flex space-x-6">
-          <button
-            onClick={() => handleOpenModal("Skill Development")}
-            className="flex-1 h-full bg-blue-500 hover:scale-105 transition-all duration-300 ease-in-out flex items-center justify-center text-white text-2xl rounded-lg shadow-lg cursor-pointer"
-          >
+<>
+  <div className="flex flex-col h-screen p-6 space-y-[1/10]">
+    {/* First row */}
+    <div className="flex-1 flex items-center justify-center space-x-14">
+      <button
+        onClick={() => handleOpenModal("Skill Development")}
+        className="w-[40%] h-[80%] focus:outline-none"
+      >
+        <MagicCard
+          className="w-full h-full bg-darkpeach font-Expose hover:scale-105 transition-all duration-300 ease-in-out flex items-center justify-center text-white text-2xl rounded-[20px] shadow-lg cursor-pointer"
+          gradientColor={"#A9CC66"}
+        >
+          <div className="flex flex-col items-center justify-center">
+            <RocketIcon className="w-12 h-12 mb-2" /> {/* Icon for Skill Development */}
             Skill Development
-          </button>
-          <button
-            onClick={() => handleOpenModal("Creativity")}
-            className="flex-1 h-full bg-green-500 hover:scale-105 transition-all duration-300 ease-in-out flex items-center justify-center text-white text-2xl rounded-lg shadow-lg cursor-pointer"
-          >
+          </div>
+        </MagicCard>
+      </button>
+
+      <button
+        onClick={() => handleOpenModal("Creativity")}
+        className="w-[40%] h-[80%] focus:outline-none"
+      >
+        <MagicCard
+          className="w-full h-full bg-darkpeach font-Expose hover:scale-105 transition-all duration-300 ease-in-out flex items-center justify-center text-white text-2xl rounded-[20px] shadow-lg cursor-pointer"
+          gradientColor={"#A9CC66"}
+        >
+          <div className="flex flex-col items-center justify-center">
+            <Pencil1Icon className="w-12 h-12 mb-2" /> {/* Icon for Creativity */}
             Creativity
-          </button>
-        </div>
+          </div>
+        </MagicCard>
+      </button>
+    </div>
 
-        {/* Second row */}
-        <div className="flex-1 flex space-x-6">
-          <button
-            onClick={() => handleOpenModal("Friendship & Family")}
-            className="flex-1 h-full bg-red-500 hover:scale-105 transition-all duration-300 ease-in-out flex items-center justify-center text-white text-2xl rounded-lg shadow-lg cursor-pointer"
-          >
+    {/* Second row */}
+    <div className="flex-1 flex items-center justify-center space-x-14">
+      <button
+        onClick={() => handleOpenModal("Friendship & Family")}
+        className="w-[40%] h-[80%] focus:outline-none"
+      >
+        <MagicCard
+          className="w-full h-full bg-darkerkiwi font-Expose hover:scale-105 transition-all duration-300 ease-in-out flex items-center justify-center text-white text-2xl rounded-[20px] shadow-lg cursor-pointer"
+          gradientColor={"#FFA96B"}
+        >
+          <div className="flex flex-col items-center justify-center">
+            <HomeIcon className="w-12 h-12 mb-2" /> {/* Icon for Friendship & Family */}
             Friendship & Family
-          </button>
-          <button
-            onClick={() => handleOpenModal("Lifestyle")}
-            className="flex-1 h-full bg-yellow-500 hover:scale-105 transition-all duration-300 ease-in-out flex items-center justify-center text-white text-2xl rounded-lg shadow-lg cursor-pointer"
-          >
-            Lifestyle
-          </button>
-        </div>
+          </div>
+        </MagicCard>
+      </button>
 
-      </div>
+      <button
+        onClick={() => handleOpenModal("Lifestyle")}
+        className="w-[40%] h-[80%] focus:outline-none"
+      >
+        <MagicCard
+          className="w-full h-full bg-darkerkiwi font-Expose hover:scale-105 transition-all duration-300 ease-in-out flex items-center justify-center text-white text-2xl rounded-[20px] shadow-lg cursor-pointer"
+          gradientColor={"#FFA96B"}
+        >
+          <div className="flex flex-col items-center justify-center">
+            <HeartIcon className="w-12 h-12 mb-2" /> {/* Icon for Lifestyle */}
+            Lifestyle
+          </div>
+        </MagicCard>
+      </button>
+    </div>
+  </div>
+
 
       <Modal
         open={promptModal}
@@ -188,27 +223,22 @@ export default function Category() {
             />
           </div>
 
-          <div className="flex justify-between mt-8 space-x-4"> {/* Increased spacing between buttons */}
-            <Button
-              variant="contained"
-              fullWidth
+          <div className="flex justify-between mt-8 space-x-4">
+            <button
               onClick={handleJoinPact}
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-3 transition-transform transform hover:scale-105"
-              style={{ borderRadius: "10px" }}
+              className="w-full bg-peach hover:bg-darkpeach text-white font-semibold rounded-md py-3 transition-transform transform hover:scale-105 shadow-lg"
             >
               Join Pact
-            </Button>
+            </button>
 
-            <Button
-              variant="contained"
-              fullWidth
+            <button
               onClick={handleCreatePact}
-              className="bg-green-600 hover:bg-green-700 text-white rounded-lg py-3 transition-transform transform hover:scale-105"
-              style={{ borderRadius: "10px" }}
+              className="w-full bg-darkerkiwi hover:bg-darkestkiwi text-white font-semibold rounded-md py-3 transition-transform transform hover:scale-105 shadow-lg"
             >
               Create Pact
-            </Button>
+            </button>
           </div>
+
         </Box>
       </Modal>
 
