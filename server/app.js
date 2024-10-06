@@ -9,7 +9,6 @@ import Alert from "./models/alert.js";
 import User from "./models/user.js";
 import Pact from "./models/pact.js";
 import Relationship from "./models/relationship.js";
-import { getUserCategoryCount } from "../lib/pactService.js"; // Adjust the path if needed
 
 const app = express();
 app.use(express.json());
@@ -19,14 +18,14 @@ app.use(cors());
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: `${process.env.CLIENT_URL ?? "http://localhost:3000"}`,
-  },
+    origin: `${process.env.CLIENT_URL ?? 'http://localhost:3000'}`
+  }
 });
 connectToDatabase();
 const port = 8080;
 
 // Toggle completion status for a pact and update relationships
-app.patch("/pact/:pactId/complete", async (req, res) => {
+app.patch('/pact/:pactId/complete', async (req, res) => {
   const { pactId } = req.params;
   const { userId } = req.body; // Get userId from the request body
 
@@ -43,9 +42,8 @@ app.patch("/pact/:pactId/complete", async (req, res) => {
     }
 
     // Determine which player is confirming completion
-    const isFirstPlayer =
-      pact.players[0]._id.toString() === playerOne._id.toString();
-
+    const isFirstPlayer = pact.players[0]._id.toString() === playerOne._id.toString();
+    
     if (isFirstPlayer) {
       // Toggle Player One's confirmation status
       pact.playerOneTaskCompleted = true;
@@ -107,21 +105,6 @@ app.patch("/pact/:pactId/complete", async (req, res) => {
   }
 });
 
-app.get("/api/categoryCount/:userId", async (req, res) => {
-  try {
-    const { userId } = req.params;
-
-    // Call the service function to get the category counts for the user
-    const categoryCounts = await getUserCategoryCount(userId);
-
-    // Respond with the category counts
-    res.json({ categoryCounts });
-  } catch (error) {
-    console.error("Error fetching category counts:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
 app.get("/user/active-pacts/:email", async (req, res) => {
   try {
     const { email } = req.params;
@@ -144,7 +127,7 @@ app.get("/user/active-pacts/:email", async (req, res) => {
   }
 });
 
-app.get("/user/:email/friends", async (req, res) => {
+app.get('/user/:email/friends', async (req, res) => {
   const { email } = req.params;
 
   try {
@@ -152,24 +135,27 @@ app.get("/user/:email/friends", async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: 'User not found' });
     }
 
     // Find relationships where the user is either user1 or user2
     const relationships = await Relationship.find({
-      $or: [{ user1: user._id }, { user2: user._id }],
-    }).populate("user1 user2", "name email"); // Populate with name and email
+      $or: [
+        { user1: user._id },
+        { user2: user._id }
+      ]
+    }).populate('user1 user2', 'name email'); // Populate with name and email
     // Map to get friends
-    const friends = relationships.map((rel) => {
+    const friends = relationships.map(rel => {
       return rel.user1._id.equals(user._id)
-        ? { ...rel.user2.toJSON(), score: rel.score }
-        : { ...rel.user1.toJSON(), score: rel.score };
+        ? { ...rel.user2.toJSON(), score: rel.score}
+        : {...rel.user1.toJSON(), score: rel.score}
     });
 
     res.json({ friends });
   } catch (error) {
-    console.error("Error fetching friends:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error('Error fetching friends:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -193,10 +179,10 @@ io.on("connection", async (socket) => {
       const pact = new Pact({
         players: [player],
         playerOneMsg: pactMessage,
-        category: category,
-      });
-      console.log(pact);
-      await pact.save();
+        category: category
+      })
+      console.log(pact)
+      await pact.save()
 
       // Join the player to a room
       await socket.join(pact.id);
@@ -219,16 +205,16 @@ io.on("connection", async (socket) => {
     }
   });
   socket.on("pact:join", async (payload) => {
-    const { email, pactId, pactMessage, category } = payload;
+    const { email, pactId, pactMessage, category } = payload
     try {
       // Get the current player
       await connectToDatabase();
       const player = await User.findOne({ email });
 
       // Get the pact to join and add the new player
-      const pact = await Pact.findById(pactId).populate("players");
-      pact.players.push(player);
-      pact.playerTwoMsg = pactMessage;
+      const pact = await Pact.findById(pactId).populate('players')
+      pact.players.push(player)
+      pact.playerTwoMsg = pactMessage
       pact.category = category;
 
       // Save updates and reflect in socket
@@ -248,13 +234,13 @@ io.on("connection", async (socket) => {
         playerTwoMsg: pactMessage,
         hasPlayerJoined: false,
         category: pact.category,
-      });
+      })
     } catch (err) {
       console.error(err);
     }
   });
   socket.on("pact:ready", async (payload) => {
-    const { email, pactId } = payload;
+    const { email, pactId } = payload
     try {
       // Get the current player
       await connectToDatabase();
@@ -269,8 +255,8 @@ io.on("connection", async (socket) => {
       }
 
       // Save updates and reflect in socket
-      await pact.save();
-
+      await pact.save()
+      
       // Emit to the players
       io.to(pact.id).emit("pact:ready", {
         players: pact.players,
@@ -281,7 +267,8 @@ io.on("connection", async (socket) => {
         playerTwoMsg: pact.playerTwoMsg,
         isFirstPlayer: socket.data.isFirstPlayer,
         hasPlayerJoined: false,
-      });
+      })
+
 
       if (pact.hasPlayerOneConfirmed && pact.hasPlayerTwoConfirmed) {
         io.to(pact.id).emit("pact:inProgress", {
@@ -301,12 +288,13 @@ io.on("connection", async (socket) => {
 
         await pact.save();
       }
+
     } catch (err) {
       console.error(err);
     }
   });
   socket.on("pact:complete", async (payload) => {
-    const { email, pactId } = payload;
+    const { email, pactId } = payload
     try {
       // Get the current user
       let user = await User.findOne({ email }).populate({
@@ -318,14 +306,14 @@ io.on("connection", async (socket) => {
       });
 
       // Get the current pact
-      const pact = await Pact.findById(pactId).populate("players");
+      const pact = await Pact.findById(pactId).populate('players')
       if (pact.players[0]._id.toString() === user._id.toString()) {
-        pact.playerOneTaskCompleted = true;
+        pact.playerOneTaskCompleted = true
       } else if (pact.players[1]._id.toString() === user._id.toString()) {
-        pact.playerTwoTaskCompleted = true;
+        pact.playerTwoTaskCompleted = true
       }
       // Let user(s) know of someones completion
-      await pact.save();
+      await pact.save()
 
       // re-query fresh data
       user = await User.findOne({ email }).populate({
@@ -335,30 +323,28 @@ io.on("connection", async (socket) => {
           select: "name email",
         },
       });
-      console.log("Sending", user.activePacts);
+      console.log("Sending", user.activePacts)
       io.to(socket.id).emit("pact:update", {
-        updatedPact: pact,
-      });
+        updatedPact: pact
+      })
 
       if (pact.playerOneTaskCompleted && pact.playerTwoTaskCompleted) {
         // Close the pact
-        pact.state = "closed";
-        pact.isComplete = true;
+        pact.state = "closed"
+        pact.isComplete = true
         await pact.save();
 
         // remove from both users activePacts array
-        const playerOne = await User.findByIdAndUpdate(
-          pact.players[0]._id,
+        const playerOne = await User.findByIdAndUpdate(pact.players[0]._id, 
           { $pull: { activePacts: pact._id } },
           { new: true }
-        );
-        const playerTwo = await User.findByIdAndUpdate(
-          pact.players[1]._id,
+        )
+        const playerTwo = await User.findByIdAndUpdate(pact.players[1]._id, 
           { $pull: { activePacts: pact._id } },
           { new: true }
-        );
-        await playerOne.save();
-        await playerTwo.save();
+        )
+        await playerOne.save()
+        await playerTwo.save()
 
         // Check if players are already friends (relationship exists)
         let relationship = await Relationship.findOne({
@@ -387,15 +373,15 @@ io.on("connection", async (socket) => {
         }
 
         io.to(pact.id).emit("pact:close", {
-          removedPactId: pact.id,
-        });
+          removedPactId: pact.id
+        })
       }
-    } catch (err) {
-      console.error(err);
+    } catch(err) {
+      console.error(err)
     }
-  });
+  })
   socket.on("pact:join-active", async (payload) => {
-    const { email } = payload;
+    const { email } = payload
     try {
       const user = await User.findOne({ email }).populate({
         path: "activePacts",
@@ -404,22 +390,22 @@ io.on("connection", async (socket) => {
           select: "name email",
         },
       });
-
+  
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      user.activePacts.forEach((pact) => {
-        socket.join(pact._id.toString());
-      });
+      user.activePacts.forEach(pact => {
+        socket.join(pact._id.toString())
+      })
 
       io.to(socket.id).emit("pact:joined-active", {
-        activePacts: user.activePacts,
-      });
+        activePacts: user.activePacts
+      })
     } catch (err) {
       console.error("Error fetching active pacts:", err);
     }
-  });
+  })
 
   socket.on("pact:leave", () => {
     console.log("pact:leave");
