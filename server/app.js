@@ -125,6 +125,7 @@ io.on('connection', async (socket) => {
         hasPlayerTwoConfirmed: pact.hasPlayerTwoConfirmed,
         playerOneMsg: pact.playerOneMsg,
         playerTwoMsg: pact.playerTwoMsg,
+        isFirstPlayer,
       })
 
       // TODO: Check if both are ready, if so, emit event to set a pact in progress

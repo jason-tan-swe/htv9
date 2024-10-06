@@ -16,15 +16,6 @@ export default function Lobby() {
   const state = useGameStateStore(state => state.current)
   const updateGameState = useGameStateStore(state => state.updateGameState)
 
-  useEffect(() => {
-    const onPactJoin = (fields) => {
-      updateGameState({
-        ...fields
-      })
-    }
-    socket.on("pact:ready", onPactJoin)
-  }, [])
-
   console.log("Jason state = ", state)
 
     // Define two color palettes for cards and beams
@@ -52,16 +43,18 @@ export default function Lobby() {
       stop: palette1.secondColor,
     });
 
-    // Function to toggle colors for card 1 (including the beam)
-    const toggleCard1Colors = async () => {
+    const handleReadyUp = async () => {
       await socket.emit("pact:ready", { email: session.user.email, pactId: state.pactId })
+    }
+
+    // Function to toggle colors for card 1 (including the beam)
+    const toggleCard1Colors = () => {
       const newCard1Colors = card1Colors.firstColor === palette1.firstColor ? palette2 : palette1;
       setCard1Colors(newCard1Colors);
       setBeam1Colors({
         start: newCard1Colors.firstColor,  // Use the full palette1 or palette2 for the beam
         stop: newCard1Colors.secondColor, 
       });
-      console.log("Email and id = ", session.user.email, state.pactId)
     };
 
     // Function to toggle colors for card 2 (including the beam)
@@ -73,6 +66,26 @@ export default function Lobby() {
         stop: newCard2Colors.secondColor, 
       });
     };
+    console.log(session)
+
+    useEffect(() => {
+      console.log(state?.isFirstPlayer)
+      if (state?.isFirstPlayer) {
+        toggleCard1Colors()
+      } else {
+        toggleCard2Colors()
+      }
+      
+    }, [state, session])
+
+    useEffect(() => {
+      const onPactJoin = (fields) => {
+        updateGameState({
+          ...fields
+        })
+      }
+      socket.on("pact:ready", onPactJoin)
+    }, [])
 
   if (!session) {
     return null;
@@ -99,7 +112,7 @@ export default function Lobby() {
         />
         {/* Buttons to toggle colors for each card */}
         <div className="mt-4 flex gap-8">
-          <button onClick={toggleCard1Colors} className="px-4 py-2 bg-blue-500 text-white rounded">
+          <button onClick={handleReadyUp} className="px-4 py-2 bg-blue-500 text-white rounded">
             Ready Up
           </button>
         </div>
