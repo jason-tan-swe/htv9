@@ -108,7 +108,7 @@ function HomePage() {
               ? "from-peach to-darkpeach"
               : pact.isComplete
               ? "from-gray-400 to-gray-500"
-              : "from-green-400 to-blue-500";
+              : "from-darkerkiwi to-peach";
 
           return (
             <button
