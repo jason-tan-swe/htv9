@@ -26,9 +26,19 @@ export default function Category() {
         ...fields
       })
     }
-
+    updateGameState({
+      players: [],
+      pactId: '',
+      hasPlayerOneConfirmed: false,
+      hasPlayerTwoConfirmed: false,
+      playerOneMsg: '',
+      playerTwoMsg: '',
+      isFirstPlayer: false,
+    })
     socket.on("pact:join", onPactJoin)
   }, [])
+
+  console.log("Jason cat = ", state)
 
   const handleOpenModal = (c) => {
     setPromptModal(true)

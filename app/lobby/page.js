@@ -15,9 +15,7 @@ export default function Lobby() {
   const router = useRouter()
   const state = useGameStateStore(state => state.current)
   const updateGameState = useGameStateStore(state => state.updateGameState)
-
-  console.log("Jason state = ", state)
-
+  console.log("Jason state", state)
     // Define two color palettes for cards and beams
     const palette1 = {
       firstColor: "#ff0000", // Red
@@ -32,6 +30,7 @@ export default function Lobby() {
     // State for each card's colors and beams
     const [card1Colors, setCard1Colors] = useState(state.hasPlayerOneConfirmed ? palette2 : palette1);
     const [card2Colors, setCard2Colors] = useState(state.hasPlayerTwoConfirmed ? palette2 : palette1);
+    const [shouldUpdate, setShouldUpdate] = useState(false);
 
     const [beam1Colors, setBeam1Colors] = useState({
       start: palette1.firstColor,
@@ -66,23 +65,20 @@ export default function Lobby() {
         stop: newCard2Colors.secondColor, 
       });
     };
-    console.log(session)
-
-    useEffect(() => {
-      console.log(state?.isFirstPlayer)
-      if (state?.isFirstPlayer) {
-        toggleCard1Colors()
-      } else {
-        toggleCard2Colors()
-      }
-      
-    }, [state, session])
 
     useEffect(() => {
       const onPactJoin = (fields) => {
         updateGameState({
           ...fields
         })
+        if (!fields.hasPlayerJoined) {
+          if (fields.isFirstPlayer) {
+            toggleCard1Colors()
+          } else {
+            toggleCard2Colors()
+          }
+        }
+        
       }
       const onPactCreated = (fields) => {
         router.push('/home')

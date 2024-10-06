@@ -35,7 +35,7 @@ export default function Home() {
                 1
               </div>
               <h3 className="text-2xl font-semibold mb-4">Set a Goal</h3>
-              <p>Define your goal, whether it's personal or professional, and make a pact with someone to stay accountable.</p>
+              <p>Define your goal, whether it&apos;s personal or professional, and make a pact with someone to stay accountable.</p>
             </div>
             <div className="text-center">
               <div className="bg-purple-500 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">

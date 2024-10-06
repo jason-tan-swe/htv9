@@ -7,7 +7,9 @@ export const useGameStateStore = create(set => ({
     hasPlayerOneConfirmed: false,
     hasPlayerTwoConfirmed: false,
     playerOneMsg: '',
-    playerTwoMsg: ''
+    playerTwoMsg: '',
+    isFirstPlayer: false,
+    hasPlayerJoined: false,
   },
   updateGameState: fields =>
     set(state => ({ current: { ...state.current, ...fields } }))

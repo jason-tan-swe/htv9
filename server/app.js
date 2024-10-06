@@ -37,27 +37,22 @@ app.patch('/pact/:pactId/complete', async (req, res) => {
     
     // Find the pact and populate players
     const pact = await Pact.findById(pactId).populate('players');
+    const playerOne = await User.findById(pact.players[0]._id);
+    const playerTwo = await User.findById(pact.players[1]._id);
 
     if (!pact) {
       return res.status(404).json({ message: 'Pact not found' });
     }
 
-    // Find the user by their email (userId is the email here)
-    const user = await User.findOne({ email: userId });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    // Determine which player is confirming completion
+    const isFirstPlayer = pact.players[0]._id.toString() === playerOne._id.toString();
+    
+    console.log(isFirstPlayer, pact.players[1]._id.toString(), pact.players[0]._id.toString(), userId, pactId)
 
-    const playerId = user._id.toString(); // Get the user's player ID
-
-    const playerOne = await User.findById(pact.players[0]._id);
-    const playerTwo = await User.findById(pact.players[1]._id);
-
-    // Determine which player is confirming completion by comparing player IDs
-    if (playerId === playerOne._id.toString()) {
+    if (isFirstPlayer) {
       // Toggle Player One's confirmation status
-      pact.playerOneTaskCompleted = true;
-    } else if (playerId === playerTwo._id.toString()) {
+      pact.playerOneTaskCompleted = true
+    } else if (pact.players[1]._id.toString() === playerTwo._id.toString()) {
       // Toggle Player Two's confirmation status
       pact.playerTwoTaskCompleted = true;
     } else {
@@ -65,8 +60,6 @@ app.patch('/pact/:pactId/complete', async (req, res) => {
     }
 
     // If both players confirm, mark the pact as complete and handle relationships
-    console.log("Player Completed: ", pact.playerOneTaskCompleted, pact.playerTwoTaskCompleted)
-    
     if (pact.playerOneTaskCompleted && pact.playerTwoTaskCompleted) {
       pact.isComplete = true;
       pact.state = 'closed';
@@ -139,40 +132,6 @@ app.get('/user/active-pacts/:email', async (req, res) => {
   }
 });
 
-app.get('/user/:email/friends', async (req, res) => {
-  const { email } = req.params;
-
-  try {
-    // Find the user based on email
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Find relationships where the user is either user1 or user2
-    const relationships = await Relationship.find({
-      $or: [
-        { user1: user._id },
-        { user2: user._id }
-      ]
-    }).populate('user1 user2', 'name email'); // Populate with name and email
-
-    // Map to get friends
-    const friends = relationships.map(rel => {
-      return rel.user1._id.equals(user._id)
-        ? rel.user2
-        : rel.user1;
-    });
-
-    res.json({ friends });
-  } catch (error) {
-    console.error('Error fetching friends:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-
 
 /**
  * 1. Have rooms of two users through "friend code"
@@ -202,7 +161,8 @@ io.on('connection', async (socket) => {
       await socket.join(pact.id)
 
       socket.data.pactId = pact.id
-      
+      socket.data.isFirstPlayer = true
+
       // Emit to the players
       io.to(socket.id).emit("pact:join", {
         players: pact.players,
@@ -234,6 +194,7 @@ io.on('connection', async (socket) => {
       await socket.join(pact.id)
 
       socket.data.pactId = pact.id
+      socket.data.isFirstPlayer = false
       
       // Emit to the players
       io.to(pact.id).emit("pact:join", {
@@ -258,8 +219,7 @@ io.on('connection', async (socket) => {
 
       // Get the pact to join and add the new player
       const pact = await Pact.findById(pactId).populate('players')
-      const isFirstPlayer = pact.players.findIndex(p => p.id === player.id) === 0 ?? 1
-      if (isFirstPlayer) {
+      if (socket.data.isFirstPlayer) {
         pact.hasPlayerOneConfirmed = !pact.hasPlayerOneConfirmed
       } else {
         pact.hasPlayerTwoConfirmed = !pact.hasPlayerTwoConfirmed
@@ -277,7 +237,8 @@ io.on('connection', async (socket) => {
         hasPlayerTwoConfirmed: pact.hasPlayerTwoConfirmed,
         playerOneMsg: pact.playerOneMsg,
         playerTwoMsg: pact.playerTwoMsg,
-        isFirstPlayer,
+        isFirstPlayer: socket.data.isFirstPlayer,
+        hasPlayerJoined: true,
       })
 
       console.log(pact.hasPlayerOneConfirmed, pact.hasPlayerTwoConfirmed)
