@@ -145,12 +145,11 @@ app.get('/user/:email/friends', async (req, res) => {
         { user2: user._id }
       ]
     }).populate('user1 user2', 'name email'); // Populate with name and email
-
     // Map to get friends
     const friends = relationships.map(rel => {
       return rel.user1._id.equals(user._id)
-        ? rel.user2
-        : rel.user1;
+        ? { ...rel.user2.toJSON(), score: rel.score}
+        : {...rel.user1.toJSON(), score: rel.score}
     });
 
     res.json({ friends });
@@ -357,7 +356,11 @@ io.on("connection", async (socket) => {
 
         if (relationship) {
           // Increment the relationship score if they are already friends
-          relationship.score += 10; // Example score increment, you can adjust as needed
+          if (!relationship.score) {
+            relationship.score = 10;
+          } else {
+            relationship.score += 10; // Example score increment, you can adjust as needed
+          }
           await relationship.save();
         } else {
           // Create a new relationship if they are not friends yet

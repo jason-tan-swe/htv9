@@ -160,15 +160,15 @@ function HomePage() {
                       className="bg-blue-500 h-2 rounded-full"
                       style={{
                         width: `${
-                          friend.relationshipScore
-                            ? friend.relationshipScore
+                          friend.score
+                            ? Math.min(friend.score, 100)
                             : 0
                         }%`,
                       }}
                     ></div>
                   </div>
                   <p className="text-xs text-gray-400 mt-1">
-                    {friend.relationshipScore ? friend.relationshipScore : 0} /
+                    {friend.score ? Math.min(friend.score, 100) : 0} /
                     100
                   </p>
                 </div>
