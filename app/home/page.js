@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link'; // Import Link from next
 
 function HomePage() {
   const { data: session } = useSession();
@@ -38,7 +39,7 @@ function HomePage() {
     const fetchActivePacts = async () => {
       if (session?.user?.email) {
         try {
-          const response = await fetch(`http://localhost:8080/user/active-pacts/${session?.user?.email}`); // Correct template literal
+          const response = await fetch(`http://localhost:8080/user/active-pacts/${session?.user?.email}`);
 
           if (!response.ok) {
             throw new Error('Failed to fetch active pacts');
@@ -66,13 +67,13 @@ function HomePage() {
 
   const markAsComplete = async (pact) => {
     try {
-      const response = await fetch(`http://localhost:8080/pact/${pact._id}/complete`, { // Corrected the URL for patch request
+      const response = await fetch(`http://localhost:8080/pact/${pact._id}/complete`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: session?.user?.email, // Replace with the actual userId from the context
+          userId: session?.user?.email,
         }),
       });
       console.log(response);
@@ -83,11 +84,9 @@ function HomePage() {
 
       const updatedPact = await response.json();
 
-      // If the pact is complete, remove it from active pacts
       if (updatedPact.isComplete) {
         setActivePacts((prevPacts) => prevPacts.filter(p => p._id !== pact._id));
       } else {
-        // If not complete yet, update the local state to reflect that the user has completed their task
         const updatedPacts = activePacts.map((p) =>
           p._id === pact._id ? { ...p, isComplete: updatedPact.isComplete } : p
         );
@@ -103,22 +102,16 @@ function HomePage() {
     <div className="min-h-screen bg-gray-100 p-6">
       <h1 className="text-3xl font-bold mb-6">Active Pacts</h1>
 
-      {/* Active Pacts */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         {activePacts.slice(0, maxPacts).map((pact, index) => {
-          // Find the friend in the pact (someone who is not the current user)
           const friend = pact.players.find(player => player.email !== session?.user?.email);
           const isCurrentUserFirstPlayer = pact.players[0].email === session?.user?.email;
-
-          // Determine if the current user's task is complete and if the other player's task is incomplete
           const currentUserTaskCompleted = isCurrentUserFirstPlayer
             ? pact.playerOneTaskCompleted
             : pact.playerTwoTaskCompleted;
           const otherPlayerTaskIncomplete = isCurrentUserFirstPlayer
             ? !pact.playerTwoTaskCompleted
             : !pact.playerOneTaskCompleted;
-
-          // Conditional gradient: yellow if current user completed and the other hasn't, otherwise regular gradients
           const gradientClass = currentUserTaskCompleted && otherPlayerTaskIncomplete
             ? 'from-yellow-400 to-yellow-500'
             : pact.isComplete
@@ -132,7 +125,7 @@ function HomePage() {
               className={`bg-gradient-to-r ${gradientClass} text-white p-4 rounded-lg shadow-md transform hover:scale-105 transition-transform`}
             >
               <h2 className="text-xl font-semibold">
-                Pact with {friend?.name || 'Unknown'} {/* Display friend's name */}
+                Pact with {friend?.name || 'Unknown'}
               </h2>
               <p className="mt-2">
                 {pact.isComplete ? 'Pact Complete' : 'Tap to view pact details'}
@@ -141,33 +134,42 @@ function HomePage() {
           );
         })}
 
-        {/* Add placeholders for empty pact slots */}
         {Array.from({ length: maxPacts - activePacts.length }).map((_, index) => (
-          <div
-            key={index}
-            className="bg-gray-200 text-gray-500 p-4 rounded-lg shadow-md flex justify-center items-center"
-          >
-            <span className="text-4xl">+</span>
-          </div>
+          <Link href="/category" key={index}>
+            <div className="bg-gray-200 text-gray-500 p-4 rounded-lg shadow-md flex justify-center items-center hover:bg-gray-300 transition-colors cursor-pointer">
+              <span className="text-4xl">+</span>
+            </div>
+          </Link>
         ))}
       </div>
 
       <h2 className="text-2xl font-bold mb-4">Friends List</h2>
 
-      {/* Friends List */}
-      <ul className="mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {friends.length > 0 ? (
           friends.map((friend) => (
-            <li key={friend._id} className="mb-2">
-              {friend.name} ({friend.email})
-            </li>
+            <div key={friend._id} className="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4 hover:bg-gray-50 transition">
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold">{friend.name}</h3>
+                <p className="text-gray-500">{friend.email}</p>
+                <div className="mt-2">
+                  <span className="text-sm text-gray-600">Relationship Score: </span>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-500 h-2 rounded-full"
+                      style={{ width: `${friend.relationshipScore ? friend.relationshipScore : 0}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">{friend.relationshipScore ? friend.relationshipScore : 0} / 100</p>
+                </div>
+              </div>
+            </div>
           ))
         ) : (
-          <li>No friends found</li>
+          <p className="text-gray-500">No friends found</p>
         )}
-      </ul>
+      </div>
 
-      {/* Pact Details Modal */}
       {selectedFriend && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-auto">
