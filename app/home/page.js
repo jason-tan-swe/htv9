@@ -4,12 +4,14 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { RocketIcon, Pencil1Icon, HomeIcon, HeartIcon } from '@radix-ui/react-icons'; // Import Radix icons
+import { socket } from "../../socket/index";
+import { usePactStore } from "../../stores/pact";
 
 function HomePage() {
   const { data: session } = useSession();
+  const { activePacts, addPact, updatePact, setPact, removePact } = usePactStore()
   const [friends, setFriends] = useState([]);
   const [selectedFriend, setSelectedFriend] = useState(null);
-  const [activePacts, setActivePacts] = useState([]);
   const maxPacts = 3; // Maximum number of pacts to display in the active section
 
   // Category Icon Mapping
@@ -20,6 +22,31 @@ function HomePage() {
     "Lifestyle": HeartIcon
   };
 
+  useEffect(() => {
+    if (!session) {
+      return
+    }
+
+    const onPactUpdate = async (payload) => {
+      const { updatedPact } = payload
+      updatePact(updatedPact)
+    }
+    const onPactClose = async (payload) => {
+      const { removedPactId } = payload
+      removePact(removedPactId)
+    }
+    const onPactJoinedActive = async (payload) => {
+      const { activePacts } = payload
+      setPact(activePacts)
+    }
+
+    // Emit event to join all active pacts
+    socket.emit("pact:join-active", { email: session?.user?.email })
+    socket.on("pact:update", onPactUpdate)
+    socket.on("pact:close", onPactClose)
+    socket.on("pact:joined-active", onPactJoinedActive)
+  }, [session])
+  console.log("Jason session = ", activePacts)
   // Fetch the user's friends list from the server
   useEffect(() => {
     const fetchFriends = async () => {
@@ -39,25 +66,6 @@ function HomePage() {
     fetchFriends();
   }, [session]);
 
-  // Fetch the user's active pacts from the server
-  useEffect(() => {
-    const fetchActivePacts = async () => {
-      if (session?.user?.email) {
-        try {
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:8080'}/user/active-pacts/${session?.user?.email}`
-          );
-          const data = await response.json();
-          setActivePacts(data.activePacts);
-        } catch (error) {
-          console.error("Error fetching active pacts:", error);
-        }
-      }
-    };
-
-    fetchActivePacts();
-  }, [session]);
-
   const handleClick = (pact) => {
     setSelectedFriend(pact);
   };
@@ -68,40 +76,17 @@ function HomePage() {
 
   const markAsComplete = async (pact) => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:8080'}/pact/${pact._id}/complete`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId: session?.user?.email,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to update pact status");
-      }
-
-      const updatedPact = await response.json();
-
-      if (updatedPact.isComplete) {
-        setActivePacts((prevPacts) =>
-          prevPacts.filter((p) => p._id !== pact._id)
-        );
-      } else {
-        const updatedPacts = activePacts.map((p) =>
-          p._id === pact._id ? { ...p, isComplete: updatedPact.isComplete } : p
-        );
-        setActivePacts(updatedPacts);
-      }
+      // Emit event
+      await socket.emit("pact:complete", {email: session?.user?.email, pactId: pact._id})
       closeModal();
     } catch (error) {
       console.error("Error marking pact as complete:", error);
     }
   };
+
+  if (!session) {
+    return null
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">

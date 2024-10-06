@@ -167,7 +167,7 @@ app.get('/user/:email/friends', async (req, res) => {
  */
 
 io.on("connection", async (socket) => {
-  console.log("a user connected");
+  console.log("a user connected", socket.id);
 
   socket.on("pact:create", async (payload) => {
     const { email, pactMessage, category } = payload;
@@ -294,6 +294,116 @@ io.on("connection", async (socket) => {
       console.error(err);
     }
   });
+  socket.on("pact:complete", async (payload) => {
+    const { email, pactId } = payload
+    try {
+      // Get the current user
+      let user = await User.findOne({ email }).populate({
+        path: "activePacts",
+        populate: {
+          path: "players",
+          select: "name email",
+        },
+      });
+
+      // Get the current pact
+      const pact = await Pact.findById(pactId).populate('players')
+      if (pact.players[0]._id.toString() === user._id.toString()) {
+        pact.playerOneTaskCompleted = true
+      } else if (pact.players[1]._id.toString() === user._id.toString()) {
+        pact.playerTwoTaskCompleted = true
+      }
+      // Let user(s) know of someones completion
+      await pact.save()
+
+      // re-query fresh data
+      user = await User.findOne({ email }).populate({
+        path: "activePacts",
+        populate: {
+          path: "players",
+          select: "name email",
+        },
+      });
+      console.log("Sending", user.activePacts)
+      io.to(socket.id).emit("pact:update", {
+        updatedPact: pact
+      })
+
+      if (pact.playerOneTaskCompleted && pact.playerTwoTaskCompleted) {
+        // Close the pact
+        pact.state = "closed"
+        pact.isComplete = true
+        await pact.save();
+
+        // remove from both users activePacts array
+        const playerOne = await User.findByIdAndUpdate(pact.players[0]._id, 
+          { $pull: { activePacts: pact._id } },
+          { new: true }
+        )
+        const playerTwo = await User.findByIdAndUpdate(pact.players[1]._id, 
+          { $pull: { activePacts: pact._id } },
+          { new: true }
+        )
+        await playerOne.save()
+        await playerTwo.save()
+
+        // Check if players are already friends (relationship exists)
+        let relationship = await Relationship.findOne({
+          $or: [
+            { user1: playerOne._id, user2: playerTwo._id },
+            { user1: playerTwo._id, user2: playerOne._id },
+          ],
+        });
+
+        if (relationship) {
+          // Increment the relationship score if they are already friends
+          relationship.score += 10; // Example score increment, you can adjust as needed
+          await relationship.save();
+        } else {
+          // Create a new relationship if they are not friends yet
+          const newRelationship = new Relationship({
+            user1: playerOne._id,
+            user2: playerTwo._id,
+            score: 10, // Initial score when a new friendship is formed
+          });
+          await newRelationship.save();
+        }
+
+        io.to(pact.id).emit("pact:close", {
+          removedPactId: pact.id
+        })
+      }
+    } catch(err) {
+      console.error(err)
+    }
+  })
+  socket.on("pact:join-active", async (payload) => {
+    const { email } = payload
+    try {
+      const user = await User.findOne({ email }).populate({
+        path: "activePacts",
+        populate: {
+          path: "players",
+          select: "name email",
+        },
+      });
+  
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      user.activePacts.forEach(pact => {
+        socket.join(pact._id.toString())
+      })
+
+      io.to(socket.id).emit("pact:joined-active", {
+        activePacts: user.activePacts
+      })
+    } catch (err) {
+      console.error("Error fetching active pacts:", err);
+    }
+  })
+
   socket.on("pact:leave", () => {
     console.log("pact:leave");
   });
