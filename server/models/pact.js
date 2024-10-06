@@ -9,6 +9,7 @@ const pactSchema = new mongoose.Schema({
     enum: ['open', 'closed', 'in-progress'],
     default: 'open',
   },
+  category: String,
   playerOneMsg: String,
   playerTwoMsg: String,
   playerOneTaskCompleted: { type: Boolean, default: false }, // Task completion status for Player 1

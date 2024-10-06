@@ -3,20 +3,32 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link"; // Import Link from next
+import { RocketIcon, Pencil1Icon, HomeIcon, HeartIcon } from '@radix-ui/react-icons'; // Import Radix icons
 
 function HomePage() {
   const { data: session } = useSession();
   const [friends, setFriends] = useState([]);
   const [selectedFriend, setSelectedFriend] = useState(null);
   const [activePacts, setActivePacts] = useState([]);
+  const [categories, setCategories] = useState([]); // Add state for categories
   const maxPacts = 3; // Maximum number of pacts to display in the active section
+
+  // Category Icon Mapping
+  const categoryIconMap = {
+    "Skill Development": RocketIcon,
+    "Creativity": Pencil1Icon,
+    "Friendship & Family": HomeIcon,
+    "Lifestyle": HeartIcon
+  };
 
   // Fetch the user's friends list from the server
   useEffect(() => {
     const fetchFriends = async () => {
       if (session?.user?.email) {
         try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:8080'}/user/${session.user.email}/friends`);
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:8080'}/user/${session.user.email}/friends`
+          );
 
           if (!response.ok) {
             throw new Error("Failed to fetch friends list");
@@ -38,7 +50,9 @@ function HomePage() {
     const fetchActivePacts = async () => {
       if (session?.user?.email) {
         try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:8080'}/user/active-pacts/${session?.user?.email}`);
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:8080'}/user/active-pacts/${session?.user?.email}`
+          );
 
           if (!response.ok) {
             throw new Error("Failed to fetch active pacts");
@@ -55,6 +69,28 @@ function HomePage() {
     fetchActivePacts();
   }, [session]);
 
+  // Fetch pact categories from the server
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:8080'}/pact/categories`
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch categories");
+        }
+
+        const data = await response.json();
+        setCategories(data.categories);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   const handleClick = (pact) => {
     setSelectedFriend(pact);
   };
@@ -65,15 +101,18 @@ function HomePage() {
 
   const markAsComplete = async (pact) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:8080'}/pact/${pact._id}/complete`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: session?.user?.email,
-        }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:8080'}/pact/${pact._id}/complete`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: session?.user?.email,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to update pact status");
@@ -203,6 +242,31 @@ function HomePage() {
             <p className="text-gray-700 mb-6">
               {selectedFriend.playerOneMsg} - {selectedFriend.playerTwoMsg}
             </p>
+
+            {/* Display pact categories inline */}
+            <h4 className="text-xl font-bold mb-4">Pact Categories</h4>
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              {categories.length > 0 ? (
+                categories.map((category) => {
+                  const IconComponent = categoryIconMap[category.name]; // Get the corresponding icon
+
+                  return (
+                    <div
+                      key={category._id}
+                      className="flex items-center space-x-3 p-3 rounded-lg shadow-md bg-gray-100"
+                    >
+                      {IconComponent && <IconComponent className="text-2xl" />} {/* Render the icon */}
+                      <span className="text-lg font-semibold">
+                        {category.name}
+                      </span>
+                    </div>
+                  );
+                })
+              ) : (
+                <p>No categories available</p>
+              )}
+            </div>
+
             <button
               onClick={() => markAsComplete(selectedFriend)}
               className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors mb-4"

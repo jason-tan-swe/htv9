@@ -137,7 +137,7 @@ io.on("connection", async (socket) => {
   console.log("a user connected");
 
   socket.on("pact:create", async (payload) => {
-    const { email, pactMessage } = payload;
+    const { email, pactMessage, category } = payload;
     try {
       // Get the current player
       await connectToDatabase();
@@ -147,8 +147,10 @@ io.on("connection", async (socket) => {
       const pact = new Pact({
         players: [player],
         playerOneMsg: pactMessage,
-      });
-      await pact.save();
+        category: category
+      })
+      console.log(pact)
+      await pact.save()
 
       // Join the player to a room
       await socket.join(pact.id);
@@ -164,6 +166,7 @@ io.on("connection", async (socket) => {
         hasPlayerTwoConfirmed: pact.hasPlayerTwoConfirmed,
         playerOneMsg: pactMessage,
         playerTwoMsg: "",
+        category: pact.category,
       });
     } catch (err) {
       console.error(err);
@@ -177,9 +180,10 @@ io.on("connection", async (socket) => {
       const player = await User.findOne({ email });
 
       // Get the pact to join and add the new player
-      const pact = await Pact.findById(pactId).populate("players");
-      pact.players.push(player);
-      pact.playerTwoMsg = pactMessage;
+      const pact = await Pact.findById(pactId).populate('players')
+      pact.players.push(player)
+      pact.playerTwoMsg = pactMessage
+      pact.category = category;
 
       // Save updates and reflect in socket
       await pact.save();
@@ -196,7 +200,8 @@ io.on("connection", async (socket) => {
         hasPlayerTwoConfirmed: pact.hasPlayerTwoConfirmed,
         playerOneMsg: pact.playerOneMsg,
         playerTwoMsg: pactMessage,
-      });
+        category: pact.category,
+      })
     } catch (err) {
       console.error(err);
     }

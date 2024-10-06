@@ -5,17 +5,26 @@ import { socket } from "../../socket";
 import AnimatedGrid from "../../components/AnimatedGrid";
 import BeamConnection from "../../components/BeamConnection";
 import PactVersus from "../../components/PactVersus";
-import { Crosshair2Icon, IconVersus } from "@radix-ui/react-icons"; // Example of importing Radix icon
+import { HeartIcon, HomeIcon, Pencil1Icon, RocketIcon } from "@radix-ui/react-icons"; // Example of importing Radix icon
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useGameStateStore } from "../../stores/game";
 import { CopyToClipboard } from "react-copy-to-clipboard";
+import { Category, Rocket } from "@mui/icons-material";
 
 export default function Lobby() {
   const { data: session } = useSession();
   const router = useRouter();
   const state = useGameStateStore((state) => state.current);
   const updateGameState = useGameStateStore((state) => state.updateGameState);
+
+  const categoryIconMap = {
+    "Skill Development": RocketIcon,
+    "Creativity": Pencil1Icon,
+    "Friendship & Family": HomeIcon,
+    "Lifestyle": HeartIcon
+  };
+
   // Define two color palettes for cards and beams
   const palette1 = {
     firstColor: "#ff0000", // Red
@@ -114,7 +123,7 @@ export default function Lobby() {
         <PactVersus
           pact1={state.playerOneMsg}
           pact2={state.playerTwoMsg}
-          Icon={Crosshair2Icon} // Pass the Radix Icon here
+          Icon={categoryIconMap[state.category]} // Pass the Radix Icon here
         />
         <div className="mt-8"></div>
         <BeamConnection
