@@ -105,7 +105,7 @@ export default function Home() {
                 Set a Goal
               </h3>
               <p className="text-xl">
-                Define your goal, whether it's personal or professional, and
+                Define your goal, whether it&apos;s personal or professional, and
                 make a pact with someone to stay accountable.
               </p>
             </div>
