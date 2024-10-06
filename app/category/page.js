@@ -54,6 +54,13 @@ export default function Category() {
   };
 
   const handleCreatePact = async () => {
+    if (!prompt.trim()) {
+      toast.error("The task cannot be empty. Please declare your pact.", {
+        position: "bottom-center",
+      });
+      return; // Stop execution if the prompt is empty
+    }
+  
     try {
       await socket.emit("pact:create", {
         email: session.user.email,
@@ -67,12 +74,20 @@ export default function Category() {
   };
 
   const handleJoinPact = async () => {
+    if (!prompt.trim()) {
+      toast.error("The task cannot be empty. Please declare your pact.", {
+        position: "bottom-center",
+      });
+      return; // Stop execution if the prompt is empty
+    }
+  
     if (!roomCode.trim()) {
       toast.error("Please enter a valid room code.", {
         position: "bottom-center",
       });
       return; // Stop execution if roomCode is invalid
     }
+  
     try {
       await socket.emit("pact:join", {
         email: session.user.email,
