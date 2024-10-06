@@ -39,8 +39,6 @@ export default function Category() {
     socket.on("pact:join", onPactJoin);
   }, []);
 
-  console.log("Jason cat = ", state);
-
   const handleOpenModal = (c) => {
     setPromptModal(true);
     setCategory(c);

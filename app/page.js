@@ -40,7 +40,7 @@ export default function Home() {
                 </div>
                 <h3 className="text-2xl font-semibold mb-4">Set a Goal</h3>
                 <p>
-                  Define your goal, whether it's personal or professional, and
+                  Define your goal, whether it&apos;s personal or professional, and
                   make a pact with someone to stay accountable.
                 </p>
               </div>
@@ -115,22 +115,22 @@ export default function Home() {
             <div className="grid md:grid-cols-3 gap-12">
               <div className="bg-white p-6 rounded-lg shadow-lg">
                 <p className="mb-4">
-                  "The best app to keep me accountable! I’ve hit every goal I’ve
-                  set."
+                &quot;The best app to keep me accountable! I&quot;ve hit every goal I&quot;ve
+                  set.&quot;
                 </p>
                 <span className="font-semibold">- Alex Johnson</span>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-lg">
                 <p className="mb-4">
-                  "Forming pacts with my team has made our projects more
-                  successful than ever."
+                &quot;Forming pacts with my team has made our projects more
+                  successful than ever.&quot;
                 </p>
                 <span className="font-semibold">- Maria Lopez</span>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-lg">
                 <p className="mb-4">
-                  "Finally, a way to stay motivated with the help of my
-                  friends!"
+                &quot;Finally, a way to stay motivated with the help of my
+                  friends!&quot;
                 </p>
                 <span className="font-semibold">- Brian Lee</span>
               </div>

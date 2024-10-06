@@ -16,16 +16,13 @@ function HomePage() {
     const fetchFriends = async () => {
       if (session?.user?.email) {
         try {
-          const response = await fetch(
-            `http://localhost:8080/user/${session.user.email}/friends`
-          );
+          const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:8080'}/user/${session.user.email}/friends`);
 
           if (!response.ok) {
             throw new Error("Failed to fetch friends list");
           }
 
           const data = await response.json();
-          console.log(data);
           setFriends(data.friends);
         } catch (error) {
           console.error("Error fetching friends:", error);
@@ -41,16 +38,13 @@ function HomePage() {
     const fetchActivePacts = async () => {
       if (session?.user?.email) {
         try {
-          const response = await fetch(
-            `http://localhost:8080/user/active-pacts/${session?.user?.email}`
-          );
+          const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:8080'}/user/active-pacts/${session?.user?.email}`);
 
           if (!response.ok) {
             throw new Error("Failed to fetch active pacts");
           }
 
           const data = await response.json();
-          console.log(data);
           setActivePacts(data.activePacts);
         } catch (error) {
           console.error("Error fetching active pacts:", error);
@@ -71,19 +65,15 @@ function HomePage() {
 
   const markAsComplete = async (pact) => {
     try {
-      const response = await fetch(
-        `http://localhost:8080/pact/${pact._id}/complete`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: session?.user?.email,
-          }),
-        }
-      );
-      console.log(response);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:8080'}/pact/${pact._id}/complete`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: session?.user?.email,
+        }),
+      });
 
       if (!response.ok) {
         throw new Error("Failed to update pact status");

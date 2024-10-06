@@ -18,20 +18,18 @@ app.use(cors());
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
-  },
+    origin: `${process.env.CLIENT_URL ?? 'http://localhost:3000'}`
+  }
 });
 connectToDatabase();
 const port = 8080;
 
 // Toggle completion status for a pact and update relationships
-app.patch("/pact/:pactId/complete", async (req, res) => {
-  console.log("Jason is completing");
+app.patch('/pact/:pactId/complete', async (req, res) => {
   const { pactId } = req.params;
   const { userId } = req.body; // Get userId from the request body
 
   try {
-    console.log(req.body);
     await connectToDatabase();
 
     // Find the pact and populate players
@@ -44,17 +42,8 @@ app.patch("/pact/:pactId/complete", async (req, res) => {
     }
 
     // Determine which player is confirming completion
-    const isFirstPlayer =
-      pact.players[0]._id.toString() === playerOne._id.toString();
-
-    console.log(
-      isFirstPlayer,
-      pact.players[1]._id.toString(),
-      pact.players[0]._id.toString(),
-      userId,
-      pactId
-    );
-
+    const isFirstPlayer = pact.players[0]._id.toString() === playerOne._id.toString();
+    
     if (isFirstPlayer) {
       // Toggle Player One's confirmation status
       pact.playerOneTaskCompleted = true;
@@ -150,7 +139,6 @@ io.on("connection", async (socket) => {
   socket.on("pact:create", async (payload) => {
     const { email, pactMessage } = payload;
     try {
-      console.log(email, pactMessage);
       // Get the current player
       await connectToDatabase();
       const player = await User.findOne({ email });
@@ -182,8 +170,7 @@ io.on("connection", async (socket) => {
     }
   });
   socket.on("pact:join", async (payload) => {
-    console.log("pact:join", payload);
-    const { email, pactId, pactMessage } = payload;
+    const { email, pactId, pactMessage } = payload
     try {
       // Get the current player
       await connectToDatabase();
@@ -215,8 +202,7 @@ io.on("connection", async (socket) => {
     }
   });
   socket.on("pact:ready", async (payload) => {
-    const { email, pactId } = payload;
-    console.log("Got", email, pactId);
+    const { email, pactId } = payload
     try {
       // Get the current player
       await connectToDatabase();
@@ -231,9 +217,8 @@ io.on("connection", async (socket) => {
       }
 
       // Save updates and reflect in socket
-      console.log(pact);
-      await pact.save();
-
+      await pact.save()
+      
       // Emit to the players
       io.to(pact.id).emit("pact:ready", {
         players: pact.players,
@@ -244,9 +229,8 @@ io.on("connection", async (socket) => {
         playerTwoMsg: pact.playerTwoMsg,
         isFirstPlayer: socket.data.isFirstPlayer,
         hasPlayerJoined: true,
-      });
+      })
 
-      console.log(pact.hasPlayerOneConfirmed, pact.hasPlayerTwoConfirmed);
 
       if (pact.hasPlayerOneConfirmed && pact.hasPlayerTwoConfirmed) {
         io.to(pact.id).emit("pact:inProgress", {
@@ -267,7 +251,6 @@ io.on("connection", async (socket) => {
         await pact.save();
       }
 
-      // TODO: Check if both are ready, if so, emit event to set a pact in progress
     } catch (err) {
       console.error(err);
     }

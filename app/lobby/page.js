@@ -16,7 +16,6 @@ export default function Lobby() {
   const router = useRouter();
   const state = useGameStateStore((state) => state.current);
   const updateGameState = useGameStateStore((state) => state.updateGameState);
-  console.log("Jason state", state);
   // Define two color palettes for cards and beams
   const palette1 = {
     firstColor: "#ff0000", // Red
