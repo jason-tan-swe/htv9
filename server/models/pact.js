@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
 
 const pactSchema = new mongoose.Schema({
-  players: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Array of two players
+  players: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Array of two players
   hasPlayerOneConfirmed: { type: Boolean, default: false }, // For Lobby (confirmation)
   hasPlayerTwoConfirmed: { type: Boolean, default: false }, // For Lobby (confirmation)
   state: {
     type: String,
-    enum: ['open', 'closed', 'in-progress'],
-    default: 'open',
+    enum: ["open", "closed", "in-progress"],
+    default: "open",
   },
   category: String,
   playerOneMsg: String,
@@ -22,20 +22,20 @@ const pactSchema = new mongoose.Schema({
 pactSchema.methods.checkCompletion = function () {
   // Mark the pact as complete only if both players have completed their tasks
   if (this.playerOneTaskCompleted && this.playerTwoTaskCompleted) {
-    this.state = 'closed';
+    this.state = "closed";
     this.isComplete = true;
   } else {
-    this.state = 'in-progress';
+    this.state = "in-progress";
     this.isComplete = false;
   }
 };
 
 // Pre-save hook to update pact status based on task completion
-pactSchema.pre('save', function (next) {
+pactSchema.pre("save", function (next) {
   this.checkCompletion();
   next();
 });
 
-const Pact = mongoose.model('Pact', pactSchema);
+const Pact = mongoose.model("Pact", pactSchema);
 
 export default Pact;
