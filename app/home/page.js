@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import Link from "next/link"; // Import Link from next
+import Link from "next/link";
 import { RocketIcon, Pencil1Icon, HomeIcon, HeartIcon } from '@radix-ui/react-icons'; // Import Radix icons
 import { socket } from "../../socket/index";
 import { usePactStore } from "../../stores/pact";
@@ -12,7 +12,6 @@ function HomePage() {
   const { activePacts, addPact, updatePact, setPact, removePact } = usePactStore()
   const [friends, setFriends] = useState([]);
   const [selectedFriend, setSelectedFriend] = useState(null);
-  const [categories, setCategories] = useState([]); // Add state for categories
   const maxPacts = 3; // Maximum number of pacts to display in the active section
 
   // Category Icon Mapping
@@ -56,11 +55,6 @@ function HomePage() {
           const response = await fetch(
             `${process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:8080'}/user/${session.user.email}/friends`
           );
-
-          if (!response.ok) {
-            throw new Error("Failed to fetch friends list");
-          }
-
           const data = await response.json();
           setFriends(data.friends);
         } catch (error) {
@@ -71,28 +65,6 @@ function HomePage() {
 
     fetchFriends();
   }, [session]);
-
-  // Fetch pact categories from the server
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:8080'}/pact/categories`
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch categories");
-        }
-
-        const data = await response.json();
-        setCategories(data.categories);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
-
-    fetchCategories();
-  }, []);
 
   const handleClick = (pact) => {
     setSelectedFriend(pact);
@@ -224,35 +196,29 @@ function HomePage() {
             </p>
 
             {/* Display pact categories inline */}
-            <h4 className="text-xl font-bold mb-4">Pact Categories</h4>
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              {categories.length > 0 ? (
-                categories.map((category) => {
-                  const IconComponent = categoryIconMap[category.name]; // Get the corresponding icon
+            <h4 className="text-xl font-bold mb-4">Pact Category</h4>
+            <div className="flex items-center space-x-3 p-3 rounded-lg shadow-md bg-gray-100 mb-6">
+            {/* Fetch and display the correct icon */}
+            {selectedFriend.category && (
+              <>
+                {categoryIconMap[selectedFriend.category] && (
+                  // Assign the icon component to a variable and then render it
+                  React.createElement(categoryIconMap[selectedFriend.category], { className: "text-2xl" })
+                )}
+                <span className="text-lg font-semibold">
+                  {selectedFriend.category}
+                </span>
+              </>
+            )}
+          </div>
 
-                  return (
-                    <div
-                      key={category._id}
-                      className="flex items-center space-x-3 p-3 rounded-lg shadow-md bg-gray-100"
-                    >
-                      {IconComponent && <IconComponent className="text-2xl" />} {/* Render the icon */}
-                      <span className="text-lg font-semibold">
-                        {category.name}
-                      </span>
-                    </div>
-                  );
-                })
-              ) : (
-                <p>No categories available</p>
-              )}
-            </div>
+          <button
+            onClick={() => markAsComplete(selectedFriend)}
+            className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors mb-4"
+          >
+            Mark as Complete
+          </button>
 
-            <button
-              onClick={() => markAsComplete(selectedFriend)}
-              className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors mb-4"
-            >
-              Mark as Complete
-            </button>
             <button
               onClick={closeModal}
               className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"

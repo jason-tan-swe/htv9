@@ -1,11 +1,17 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import "./lobby.css";
+import { useState, useEffect, useRef } from "react";
 import { socket } from "../../socket";
+import gsap from "gsap";
 import AnimatedGrid from "../../components/AnimatedGrid";
 import BeamConnection from "../../components/BeamConnection";
 import PactVersus from "../../components/PactVersus";
-import { HeartIcon, HomeIcon, Pencil1Icon, RocketIcon } from "@radix-ui/react-icons"; // Example of importing Radix icon
+import {
+  HeartIcon,
+  HomeIcon,
+  Pencil1Icon,
+  RocketIcon,
+} from "@radix-ui/react-icons";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useGameStateStore } from "../../stores/game";
@@ -18,14 +24,16 @@ export default function Lobby() {
   const state = useGameStateStore((state) => state.current);
   const updateGameState = useGameStateStore((state) => state.updateGameState);
 
+  const buttonRef = useRef(null); // Ref for the "Ready Up" button
+  const kiwiRef = useRef(null); // Ref for the kiwi image (for any future animations)
+
   const categoryIconMap = {
     "Skill Development": RocketIcon,
-    "Creativity": Pencil1Icon,
+    Creativity: Pencil1Icon,
     "Friendship & Family": HomeIcon,
-    "Lifestyle": HeartIcon
+    Lifestyle: HeartIcon,
   };
 
-  // Define two color palettes for cards and beams
   const palette1 = {
     firstColor: "#ff0000", // Red
     secondColor: "#DC143C", // Crimson
@@ -36,7 +44,6 @@ export default function Lobby() {
     secondColor: "#00FF00", // Light Green
   };
 
-  // State for each card's colors and beams
   const [card1Colors, setCard1Colors] = useState(
     state.hasPlayerOneConfirmed ? palette2 : palette1
   );
@@ -56,31 +63,37 @@ export default function Lobby() {
   });
 
   const handleReadyUp = async () => {
+    gsap.to(buttonRef.current, {
+      scale: 1.1,
+      yoyo: true,
+      repeat: 1,
+      ease: "bounce.out",
+      duration: 0.05, // Animation duration
+    });
+
     await socket.emit("pact:ready", {
       email: session.user.email,
       pactId: state.pactId,
     });
   };
+
   const [isCopied, setIsCopied] = useState(false);
 
-  // Handle copy logic and reset message after 2 seconds
   const handleCopy = () => {
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
   };
 
-  // Function to toggle colors for card 1 (including the beam)
   const toggleCard1Colors = () => {
     const newCard1Colors =
-    card1Colors.firstColor === palette1.firstColor ? palette2 : palette1;
+      card1Colors.firstColor === palette1.firstColor ? palette2 : palette1;
     setCard1Colors(newCard1Colors);
     setBeam1Colors({
-      start: newCard1Colors.firstColor, // Use the full palette1 or palette2 for the beam
+      start: newCard1Colors.firstColor,
       stop: newCard1Colors.secondColor,
     });
   };
 
-  // Function to toggle colors for card 2 (including the beam)
   const toggleCard2Colors = async () => {
     const newCard2Colors =
       card2Colors.firstColor === palette1.firstColor ? palette2 : palette1;
@@ -98,9 +111,9 @@ export default function Lobby() {
       } else {
         toggleCard2Colors();
       }
-      setShouldUpdate(false)
+      setShouldUpdate(false);
     }
-  }, [shouldUpdate])
+  }, [shouldUpdate]);
 
   useEffect(() => {
     const onPactJoin = (fields) => {
@@ -108,7 +121,7 @@ export default function Lobby() {
         ...fields,
       });
       if (!fields.hasPlayerJoined) {
-        setShouldUpdate(true)
+        setShouldUpdate(true);
       }
     };
     const onPactCreated = (fields) => {
@@ -124,7 +137,7 @@ export default function Lobby() {
   }
 
   return (
-    <div className="relative w-full h-screen flex flex-col justify-center items-center">
+    <div className="relative w-full h-screen flex flex-col justify-center items-center bg-kiwi text-richblack">
       {/* Flexbox to center vertically and horizontally */}
       <AnimatedGrid>
         <PactVersus
@@ -140,22 +153,33 @@ export default function Lobby() {
           card2Colors={card2Colors}
           beam1Colors={beam1Colors}
           beam2Colors={beam2Colors}
-          toggleCard1Colors={toggleCard1Colors} // Pass the toggle function as a prop
-          toggleCard2Colors={toggleCard2Colors} // Pass the toggle function as a prop
+          toggleCard1Colors={toggleCard1Colors}
+          toggleCard2Colors={toggleCard2Colors}
         />
-        {/* Buttons to toggle colors for each card */}
-        <div className="mt-4 flex flex-col gap-8">
+        <div className="relative w-full flex justify-center">
+          {/* Add the Kiwi Image Between the Players */}
+          <img
+            ref={kiwiRef}
+            src="/our_kiwi.png"
+            alt="Kiwi"
+            className="w-32 h-32 absolute top-1/2 transform -translate-y-1/2"
+          />
+        </div>
+
+        <div className="mt-6 flex flex-col gap-8">
           <button
+            ref={buttonRef} // Attach the ref for GSAP animation
             onClick={handleReadyUp}
-            className="px-4 py-2 bg-blue-500 text-white rounded"
+            className="px-4 py-2 bg-richblack text-peach font-semibold rounded-lg hover:bg-richblack/90 transition duration-300"
           >
             Ready Up
           </button>
+
           <div className="flex justify-center flex-col">
             <div className="flex flex-col">
               <CopyToClipboard text={state.pactId} onCopy={handleCopy}>
                 <div className="flex justify-center">
-                  <button className="px-4 justify-center w-1/2 flex py-2 width-50% bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 transform focus:ring-1 focus:ring-blue-300">
+                  <button className="px-4 justify-center w-1/2 flex py-2 bg-richblack text-peach rounded-lg hover:bg-richblack/90 transition duration-300">
                     Copy Lobby Code
                   </button>
                 </div>
@@ -168,7 +192,7 @@ export default function Lobby() {
               )}
             </div>
 
-            <div className="mt-4 text-gray-700 text-lg">
+            <div className="mt-4 text-richblack text-lg">
               Lobby Code: {state.pactId ? state.pactId : "ID Not Available"}
             </div>
           </div>

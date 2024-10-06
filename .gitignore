@@ -34,3 +34,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+#python
+__pycache__/
+
+# Ignore the streamlit-backend folder (if you want to ignore the whole folder)
+streamlit-backend/
+
+# Or ignore specific files/folders in the streamlit-backend
+streamlit-backend/*.cpython-312.pyc
+streamlit-backend/__pycache__/
+.vm/
