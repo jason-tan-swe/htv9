@@ -17,9 +17,12 @@ import { useRouter } from "next/navigation";
 import { useGameStateStore } from "../../stores/game";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { Category, Rocket } from "@mui/icons-material";
+import { ContentCopy as CopyIcon } from "@mui/icons-material"; // Import Material-UI Copy Icon
+
 
 export default function Lobby() {
   const { data: session } = useSession();
+  const [isReady, setIsReady] = useState(false);
   const router = useRouter();
   const state = useGameStateStore((state) => state.current);
   const updateGameState = useGameStateStore((state) => state.updateGameState);
@@ -63,14 +66,7 @@ export default function Lobby() {
   });
 
   const handleReadyUp = async () => {
-    gsap.to(buttonRef.current, {
-      scale: 1.1,
-      yoyo: true,
-      repeat: 1,
-      ease: "bounce.out",
-      duration: 0.05, // Animation duration
-    });
-
+    setIsReady(true);
     await socket.emit("pact:ready", {
       email: session.user.email,
       pactId: state.pactId,
@@ -137,7 +133,7 @@ export default function Lobby() {
   }
 
   return (
-    <div className="relative w-full h-screen flex flex-col justify-center items-center bg-kiwi text-richblack">
+    <div className="relative w-full h-screen flex flex-col justify-center items-center">
       {/* Flexbox to center vertically and horizontally */}
       <AnimatedGrid>
         <PactVersus
@@ -156,45 +152,42 @@ export default function Lobby() {
           toggleCard1Colors={toggleCard1Colors}
           toggleCard2Colors={toggleCard2Colors}
         />
-        <div className="relative w-full flex justify-center">
-          {/* Add the Kiwi Image Between the Players */}
-          <img
-            ref={kiwiRef}
-            src="/our_kiwi.png"
-            alt="Kiwi"
-            className="w-32 h-32 absolute top-1/2 transform -translate-y-1/2"
-          />
-        </div>
 
         <div className="mt-6 flex flex-col gap-8">
-          <button
-            ref={buttonRef} // Attach the ref for GSAP animation
-            onClick={handleReadyUp}
-            className="px-4 py-2 bg-richblack text-peach font-semibold rounded-lg hover:bg-richblack/90 transition duration-300"
-          >
-            Ready Up
-          </button>
+        <button
+          onClick={handleReadyUp}
+          ref={buttonRef}
+          className={`px-10 py-4 rounded-full text-xl text-white font-bold transition-transform transform-gpu duration-300 ${
+            isReady
+              ? "bg-green-500 cursor-not-allowed opacity-80"
+              : "bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 hover:scale-105 shadow-lg"
+          }`}
+          disabled={isReady} // Disable the button after clicking
+        >
+          {isReady ? "Ready!" : "Ready Up"}
+      </button>
 
-          <div className="flex justify-center flex-col">
-            <div className="flex flex-col">
-              <CopyToClipboard text={state.pactId} onCopy={handleCopy}>
-                <div className="flex justify-center">
-                  <button className="px-4 justify-center w-1/2 flex py-2 bg-richblack text-peach rounded-lg hover:bg-richblack/90 transition duration-300">
-                    Copy Lobby Code
-                  </button>
-                </div>
-              </CopyToClipboard>
 
-              {isCopied && (
-                <div className="absolute flex justify-center mt-2 text-green-500 font-semibold ">
-                  Code Copied!
-                </div>
-              )}
-            </div>
+      <div className="flex justify-center flex-col items-center">
+        <div className="flex items-center mt-4">
+          <img
+            src="/our_kiwi.png"
+            alt="Kiwi Logo"
+            className="w-10 h-10 mr-4" // Adjust the size (w-10, h-10) as needed
+          />
+          <span className="text-2xl font-semibold text-gray-700 mr-2">
+            Lobby Code: {state.pactId ? state.pactId : "ID Not Available"}
+          </span>
+          <CopyToClipboard text={state.pactId} onCopy={handleCopy}>
+            <button className="ml-2 text-gray-600 hover:text-gray-800 transition">
+              <CopyIcon className="text-3xl" />
+            </button>
+          </CopyToClipboard>
+          </div>
 
-            <div className="mt-4 text-richblack text-lg">
-              Lobby Code: {state.pactId ? state.pactId : "ID Not Available"}
-            </div>
+            {isCopied && (
+              <div className="mt-2 text-green-500 font-semibold">Code Copied!</div>
+            )}
           </div>
         </div>
       </AnimatedGrid>
